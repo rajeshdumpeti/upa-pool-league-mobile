@@ -1,0 +1,59 @@
+# Node dependencies
+node_modules/
+
+# Expo / React Native
+.expo/
+.expo-shared/
+web-build/
+dist/
+
+# TypeScript build output
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Bundler / cache
+.cache/
+.npm/
+.yarn/
+.pnp.*
+.tmp/
+
+# Metro bundler cache
+metro-cache/
+.expo-cache/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+
+# Environment files (never commit real secrets)
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+expo-debug.log
+
+# Coverage
+coverage/
+
+# Build artifacts for iOS / Android
+ios/build/
+ios/Pods/
+android/app/build/
+android/.gradle/
+android/local.properties
+*.keystore
+
+# Misc
+*.log
+
+.package-lock.json
