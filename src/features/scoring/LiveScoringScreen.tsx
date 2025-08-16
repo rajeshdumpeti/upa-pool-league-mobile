@@ -16,7 +16,7 @@ type Params = {
 export default function LiveScoringScreen() {
   const nav = useNavigation<any>();
   const route = useRoute<RouteProp<Params, 'LiveScoring'>>();
-  const { matchId, meta } = route.params || {};
+  const { meta } = route.params || {};
   const [active, setActive] = useState<'home' | 'away'>(
     meta?.coinToss === 'Away' ? 'away' : 'home'
   );

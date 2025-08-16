@@ -3,6 +3,20 @@ updates:
   - package-ecosystem: npm
     directory: '/'
     schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    ignore:
+      # Expo/RN core – keep pinned to Expo SDK via `expo upgrade`
+      - dependency-name: 'react-native'
+      - dependency-name: 'expo'
+      - dependency-name: '@expo/*'
+      - dependency-name: 'react-native-gesture-handler'
+      - dependency-name: 'react-native-reanimated'
+      - dependency-name: 'react-native-screens'
+      - dependency-name: 'react-native-safe-area-context'
+      - dependency-name: 'react-native-svg'
+      - dependency-name: 'react-native-vector-icons'
+      - dependency-name: 'expo-modules-core'
+      # (add any other Expo-scope libs your app uses)
   - package-ecosystem: github-actions
     directory: '/'
     schedule: { interval: weekly }
