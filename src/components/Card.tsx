@@ -1,14 +1,22 @@
-import React, { PropsWithChildren } from 'react';
-import { View } from 'react-native';
+import React from 'react';
+import { View, ViewProps, Platform } from 'react-native';
+import { theme } from '../config/theme';
 
-type CardProps = PropsWithChildren<{
-  className?: string;
-}>;
-
-export default function Card({ children, className = '' }: CardProps) {
+export function Card({ style, ...props }: ViewProps) {
   return (
-    <View className={`rounded-2xl border border-slate-100 bg-white p-4 shadow-sm ${className}`}>
-      {children}
-    </View>
+    <View
+      {...props}
+      style={[
+        {
+          backgroundColor: theme.colors.surface.card,
+          borderRadius: theme.radii.xl,
+          borderWidth: 1,
+          borderColor: theme.colors.surface.border,
+          padding: theme.spacing.lg,
+          ...(Platform.OS === 'ios' ? theme.shadows.card.ios : theme.shadows.card.android),
+        },
+        style,
+      ]}
+    />
   );
 }
