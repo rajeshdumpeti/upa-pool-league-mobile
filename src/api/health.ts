@@ -1,6 +1,13 @@
+// src/api/health.ts
 import { axiosClient } from './axiosClient';
 
-export async function pingLive() {
-  const res = await axiosClient.get('/health/live');
+export type HealthResponse = {
+  ok: boolean;
+  service: string;
+  check: string;
+};
+
+export async function getHealth(): Promise<HealthResponse> {
+  const res = await axiosClient.get<HealthResponse>('/health/live');
   return res.data;
 }

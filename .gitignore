@@ -56,4 +56,5 @@ android/local.properties
 # Misc
 *.log
 
-.package-lock.json
+# Lock file (keep in Git, remove only if you want to)
+# package-lock.json

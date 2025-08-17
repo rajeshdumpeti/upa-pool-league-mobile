@@ -1,18 +1,19 @@
-// src/navigation/RootNavigator.tsx
+// src/navigation/AppNavigator.tsx
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import Ionicons from '@expo/vector-icons/Ionicons';
-
+import { theme } from '../config/theme';
 // Global Header
 import AppHeader from '../components/AppHeader';
 
 // Screens
-import Home from '../features/home/HomeScreen';
 import PreMatchScreen from '../features/scoring/PreMatchScreen';
 import LiveScoringScreen from '../features/scoring/LiveScoringScreen';
 import PostMatchReview from '../features/scoring/PostMatchReview';
 import ScoringScreen from '../features/scoring/ScoringScreen';
+import HomeStack from './stacks/HomeStack';
+import { Ionicons } from '@expo/vector-icons';
+import { tabIcons } from './tab-icons';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -21,29 +22,23 @@ function BottomTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: '#fff', // icons white
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.6)', // dimmed white
-        tabBarStyle: {
-          backgroundColor: '#003366', // same as header
-          borderTopWidth: 0, // clean, no divider line
-          height: 70, // extra touch area (Apple style)
-          paddingBottom: 12,
-          paddingTop: 8,
-        },
         tabBarIcon: ({ color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap = 'home';
-
-          if (route.name === 'Home') iconName = 'home-outline';
-          else if (route.name === 'PreMatch') iconName = 'timer-outline';
-          else if (route.name === 'LiveScore') iconName = 'pulse-outline';
-          else if (route.name === 'PostMatch') iconName = 'clipboard-outline';
-          else if (route.name === 'Score') iconName = 'stats-chart-outline';
-
+          const iconName = tabIcons[route.name] || 'ellipse';
           return <Ionicons name={iconName} size={size} color={color} />;
         },
+        headerShown: false,
+        // screen backgrounds
+        // sceneContainerStyle: { backgroundColor: theme.colors.surface.background },
+        // tab bar
+        tabBarStyle: {
+          backgroundColor: theme.colors.surface.card,
+          borderTopColor: theme.colors.surface.border,
+          borderTopWidth: 0.5,
+        },
+        tabBarActiveTintColor: theme.colors.brand.accent,
+        tabBarInactiveTintColor: theme.colors.text.muted,
       })}>
-      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="PreMatch" component={PreMatchScreen} />
       <Tab.Screen name="LiveScore" component={LiveScoringScreen} />
       <Tab.Screen name="PostMatch" component={PostMatchReview} />
@@ -52,7 +47,7 @@ function BottomTabs() {
   );
 }
 
-export default function RootNavigator() {
+export default function AppNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{

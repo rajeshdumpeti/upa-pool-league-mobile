@@ -1,24 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, Button } from 'react-native';
-import { pingLive } from '../../api/health';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
+import { TouchableOpacity, Text, View } from 'react-native';
+
+type Nav = NativeStackNavigationProp<HomeStackParamList>;
 
 export default function HomeScreen() {
-  const [result, setResult] = useState<string>('—');
-
-  const onPing = async () => {
-    try {
-      const data = await pingLive();
-      setResult(JSON.stringify(data));
-    } catch (e: any) {
-      setResult(`Error: ${e?.message ?? 'unknown'}`);
-    }
-  };
+  const navigation = useNavigation<Nav>();
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: 18, marginBottom: 16 }}>Home</Text>
-      <Button title="Ping Backend" onPress={onPing} />
-      <Text style={{ marginTop: 16 }}>{result}</Text>
+    <View className="px-5 py-4">
+      {/* your existing Home content */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Status')}
+        className="mt-4 rounded-xl bg-blue-600 px-4 py-3">
+        <Text className="text-center font-semibold text-white">Open Status</Text>
+      </TouchableOpacity>
     </View>
   );
 }

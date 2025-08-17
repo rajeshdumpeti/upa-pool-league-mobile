@@ -21,6 +21,7 @@
     "expo-linear-gradient": "~14.1.5",
     "expo-secure-store": "~14.2.3",
     "expo-status-bar": "~2.2.3",
+    "expo-updates": "~0.28.17",
     "nativewind": "latest",
     "react": "19.0.0",
     "react-native": "0.79.5",
@@ -29,12 +30,12 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "tslib": "^2.8.1",
-    "zustand": "^5.0.7",
-    "expo-updates": "~0.28.17"
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~19.0.10",
+    "dotenv": "^17.2.1",
     "eas-cli": "^16.17.4",
     "eslint": "^9.25.1",
     "eslint-config-expo": "^9.2.0",

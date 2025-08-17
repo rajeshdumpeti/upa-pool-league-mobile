@@ -20,7 +20,7 @@ This is a React Native (Expo) mobile application for managing upa Pool League ma
   ├── components/       # Reusable UI Components (common/)
   ├── features/         # Feature-specific Screens (home/, scoring/, schedule/)
   ├── hooks/            # Custom Hooks (useMatches, etc.)
-  ├── navigation/       # Navigation Stack & RootNavigator
+  ├── navigation/       # Navigation Stack & AppNavigator
   ├── stores/           # Zustand Store Slices (matchStore.ts, etc.)
   ├── styles/           # Tailwind Extensions & Global CSS (optional)
   ├── types/            # TypeScript Global Types & Interfaces
