@@ -1,0 +1,26 @@
+{
+  "cli": {
+    "version": ">= 9.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "channel": "dev",
+      "env": { "EXPO_PUBLIC_RELEASE_CHANNEL": "dev" }
+    },
+    "test": {
+      "distribution": "internal",
+      "channel": "test",
+      "env": { "EXPO_PUBLIC_RELEASE_CHANNEL": "test" }
+    },
+    "production": {
+      "channel": "prod",
+      "env": { "EXPO_PUBLIC_RELEASE_CHANNEL": "prod" }
+    }
+  },
+  "submit": {
+    "test": {},
+    "production": {}
+  }
+}

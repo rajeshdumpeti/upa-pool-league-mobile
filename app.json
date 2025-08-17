@@ -1,8 +1,29 @@
 {
   "expo": {
-    "name": "upa-pool-league-mobile",
+    "name": "UPA Pool League",
     "slug": "upa-pool-league-mobile",
     "version": "1.0.0",
+    "scheme": "upa",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "extra": {
+      "dev": {
+        "API_BASE": "http://192.168.1.192:8000",
+        "CMS_BASE": "https://dev-cms.example.com"
+      },
+      "test": {
+        "API_BASE": "https://api-test.example.com",
+        "CMS_BASE": "https://cms-test.example.com"
+      },
+      "prod": {
+        "API_BASE": "https://api.example.com",
+        "CMS_BASE": "https://cms.example.com"
+      },
+      "eas": {
+        "projectId": "306dee42-8182-4879-a279-defc819cdf69"
+      }
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     },
@@ -18,15 +39,25 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rajesh05db.upapoolleaguemobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
+    },
+    "owner": "rajesh05db",
+    "updates": {
+      "url": "https://u.expo.dev/306dee42-8182-4879-a279-defc819cdf69"
     }
   }
 }

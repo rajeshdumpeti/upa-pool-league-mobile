@@ -1,11 +1,8 @@
-// Detect platform to decide base URL for local dev
+// src/config/env.ts
 import { Platform } from 'react-native';
 
-const LOCAL_IP = '192.168.1.192'; // <-- replace with your machine’s LAN IP
+const LOCAL_IP = '192.168.1.192'; // Replace with your machine’s LAN IP
 
-// If on iOS simulator or web: localhost
-// If on Android emulator: 10.0.2.2
-// If on physical devices: use LOCAL_IP
 function getDevApiBase() {
   if (Platform.OS === 'ios') return 'http://localhost:8000/api/v1';
   if (Platform.OS === 'android') return 'http://10.0.2.2:8000/api/v1';
