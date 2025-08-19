@@ -25,6 +25,11 @@ type LiveScoringState = {
   shots: Shot[];
   rackMeta?: RackMeta;
 
+  // server identifiers
+  serverMatchId?: number;
+  serverMatchGameId?: number | null; // null means no game in progress
+
+  // Actions
   hydrateMatch: (m: LiveMatch) => void;
   startRack: (rackNumber: number, breakerId: number) => void;
   setBreakMark: (mark: BreakMark) => void;
@@ -33,6 +38,9 @@ type LiveScoringState = {
   completeRack: (winnerId: number, notes?: string) => void;
   resetRack: () => void;
   clear: () => void;
+
+  setServerMatchId: (id: number) => void;
+  setServerMatchGameId: (id: number | null) => void;
 };
 
 export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
@@ -152,6 +160,9 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
   },
 
   clear: () => set({ match: null, shots: [], rackMeta: undefined }),
+
+  setServerMatchId: (id) => set({ serverMatchId: id }),
+  setServerMatchGameId: (id) => set({ serverMatchGameId: id }),
 }));
 
 // -----------------------------------------------------------------------------

@@ -8,8 +8,8 @@ import { Card } from '../../components/Card';
 import { Title } from '../../components/Title';
 import { SummaryPill } from './components/SummaryPill';
 
-import { useLiveScoringStore } from '../../stores/liveScoring';
-import type { Shot, ShotSymbol } from '../../stores/liveScoring';
+import { useLiveScoringStore } from '../../stores/liveScoringStore';
+import type { Shot, ShotSymbol } from '../../stores/liveScoringStore';
 import type { LiveMatch } from './types';
 
 import { computeRackTally, SHOT_KEYS, BREAK_KEYS } from './utils/scoring';

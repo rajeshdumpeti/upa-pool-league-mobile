@@ -1,4 +1,4 @@
-import { bootstrapLiveScoringPersistence } from '../stores/liveScoring';
+import { bootstrapLiveScoringPersistence } from '../stores/liveScoringStore';
 import { bootstrapScoringRemoteSync } from '../features/scoring/effects/remoteSync';
 
 export function bootstrapStores() {

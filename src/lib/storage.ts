@@ -69,6 +69,7 @@ export const storageMode = mode; // 'mmkv' | 'async' | 'memory'
 /** Centralized, versioned keys */
 export const STORE_KEYS = {
   liveScoring: 'liveScoring:v1',
+  scoreQueue: 'scoreQueue:v1',
 } as const;
 
 /**
