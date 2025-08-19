@@ -28,7 +28,7 @@ let mode: 'mmkv' | 'async' | 'memory' = 'memory';
 
 // Try MMKV first (custom dev/prod builds)
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { MMKV } = require('react-native-mmkv');
   const inst = new MMKV({ id: 'upa-pool-league' });
   inst.set('__probe__', '1');
@@ -42,7 +42,7 @@ try {
 // If not MMKV, try AsyncStorage (works in Expo Go)
 if (mode !== 'mmkv') {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const AS = require('@react-native-async-storage/async-storage').default;
 
     // Wrap AsyncStorage with a sync facade via cache
