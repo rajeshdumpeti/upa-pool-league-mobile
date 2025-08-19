@@ -6,38 +6,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../config/theme';
 import { Card } from '../../components/Card';
 import { Title } from '../../components/Title';
+import { SummaryPill } from './components/SummaryPill';
 
-import { useLiveScoringStore } from '../../stores/liveScoringStore';
-import type { Shot, ShotSymbol, BreakMark } from '../../stores/liveScoringStore';
-import { LiveMatch } from '../../features/scoring/types';
+import { useLiveScoringStore } from '../../stores/liveScoring';
+import type { Shot, ShotSymbol } from '../../stores/liveScoring';
+import type { LiveMatch } from './types';
 
-// ---------- helpers (typed for our store Shot[]) ----------
-
-function computeRackTally(shots: Shot[], rackNumber: number) {
-  const rs = shots.filter((s) => s.rackNumber === rackNumber);
-  const count = (sym: ShotSymbol) => rs.filter((s) => s.symbol === sym).length;
-
-  return {
-    innings: count('X') + count('O') + count('M'),
-    safeties: count('S'),
-    fouls: count('F') + count('V') + count('I'),
-    timeouts: count('T'),
-    eights: count('8'),
-  };
-}
-
-const SHOT_KEYS: ShotSymbol[] = ['X', 'O', 'M', 'S', 'F', 'V', 'I', 'T', '8'];
-const BREAK_KEYS: BreakMark[] = ['Y', 'N', 'F', '8'];
-
-// =========================================================
+import { computeRackTally, SHOT_KEYS, BREAK_KEYS } from './utils/scoring';
+import ScoreStrip from './components/ScoreStrip';
+import { formatCompetitorLabel } from './utils/labels';
 
 export default function LiveScoringScreen() {
-  // state
+  // ----- store state (read-only in render) -----------------------------------
   const match = useLiveScoringStore((s) => s.match);
   const shots = useLiveScoringStore((s) => s.shots);
   const rackMeta = useLiveScoringStore((s) => s.rackMeta);
+  const homeTeamName = match?.home.name ?? 'Bullseys Breakers';
+  const awayTeamName = match?.away.name ?? 'Lossing Team';
+  const homeLabel = formatCompetitorLabel(match?.home?.name ?? homeTeamName);
+  const awayLabel = formatCompetitorLabel(match?.away?.name ?? awayTeamName);
 
-  // actions
+  // ----- store actions -------------------------------------------------------
   const hydrateMatch = useLiveScoringStore((s) => s.hydrateMatch);
   const startRack = useLiveScoringStore((s) => s.startRack);
   const setBreakMark = useLiveScoringStore((s) => s.setBreakMark);
@@ -46,7 +35,7 @@ export default function LiveScoringScreen() {
   const completeRack = useLiveScoringStore((s) => s.completeRack);
   const resetRack = useLiveScoringStore((s) => s.resetRack);
 
-  // ---- demo seed (you can play right away) ----------------
+  // ----- demo seed (runs once if no match yet) -------------------------------
   useEffect(() => {
     if (!match) {
       const demo: LiveMatch = {
@@ -67,10 +56,43 @@ export default function LiveScoringScreen() {
 
   const rackNumber = rackMeta?.rackNumber ?? 1;
 
-  const tally = useMemo(() => computeRackTally(shots, rackNumber), [shots, rackNumber]);
+  // after: const rackNumber = rackMeta?.rackNumber ?? 1;
 
-  // ---- handlers ------------------------------------------
+  const { homeWins, awayWins, breakerText } = useMemo(() => {
+    if (!match) {
+      return { homeWins: 0, awayWins: 0, breakerText: 'Break: —' };
+    }
 
+    // 1) wins
+    const homeWins = match.racks.filter((r) => r.winnerPlayerId === match.home.id).length;
+    const awayWins = match.racks.filter((r) => r.winnerPlayerId === match.away.id).length;
+
+    // 2) who breaks next (ID-based)
+    let nextBreakerId: number | undefined;
+    if (match.racks.length === 0) {
+      nextBreakerId = rackMeta?.breakerPlayerId ?? match.home.id;
+    } else {
+      const last = match.racks[match.racks.length - 1];
+      nextBreakerId =
+        last.breakerPlayerId === match.home.id
+          ? match.away.id
+          : last.breakerPlayerId === match.away.id
+            ? match.home.id
+            : undefined;
+    }
+
+    // 3) format breaker text from IDs (robust)
+    let breakerText = 'Break: —';
+    if (nextBreakerId === match.home.id) breakerText = `Break: ${match.home.name}`;
+    else if (nextBreakerId === match.away.id) breakerText = `Break: ${match.away.name}`;
+
+    return { homeWins, awayWins, breakerText };
+  }, [match, rackMeta]);
+
+  // ----- memoized tallies per current rack ----------------------------------
+  const tally = useMemo(() => computeRackTally(shots as Shot[], rackNumber), [shots, rackNumber]);
+
+  // ----- handlers (event-driven writes only; no writes in render) ------------
   const onStartRack = (breakerId: number) => {
     if (!match) return;
     startRack(rackNumber, breakerId);
@@ -84,8 +106,7 @@ export default function LiveScoringScreen() {
     completeRack(winnerId, ''); // optional notes
   };
 
-  // ---- UI -------------------------------------------------
-
+  // ----- UI ------------------------------------------------------------------
   if (!match) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -96,6 +117,13 @@ export default function LiveScoringScreen() {
 
   return (
     <ScrollView className="flex-1" contentContainerClassName="pb-6">
+      <ScoreStrip
+        homeLabel={homeLabel}
+        awayLabel={awayLabel}
+        homeWins={homeWins}
+        awayWins={awayWins}
+        breakerLabel={breakerText}
+      />
       {/* Header */}
       <View className="px-5 pt-4">
         <Text className="text-lg font-semibold text-zinc-900">{match.format.toUpperCase()}</Text>
@@ -107,6 +135,7 @@ export default function LiveScoringScreen() {
       {/* Current rack / breaker */}
       <Card className="mx-5 mt-4">
         <Title>Rack {rackNumber}</Title>
+
         <View className="mt-2 flex-row gap-3">
           <TouchableOpacity
             className="rounded-xl px-3 py-2"
@@ -114,6 +143,7 @@ export default function LiveScoringScreen() {
             onPress={() => onStartRack(match.home.id)}>
             <Text className="text-zinc-700">Break: {match.home.name}</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             className="rounded-xl px-3 py-2"
             style={{ backgroundColor: theme.colors.surface.background }}
@@ -240,17 +270,5 @@ export default function LiveScoringScreen() {
         </Card>
       )}
     </ScrollView>
-  );
-}
-
-function SummaryPill({ label, value }: { label: string; value: number }) {
-  return (
-    <View
-      className="rounded-xl px-3 py-1"
-      style={{ backgroundColor: theme.colors.surface.background }}>
-      <Text className="font-medium text-zinc-700">
-        {label}: <Text className="font-semibold">{value}</Text>
-      </Text>
-    </View>
   );
 }

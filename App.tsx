@@ -9,6 +9,8 @@ import './global.css';
 import { theme as appTheme } from './src/config/theme';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/config/query';
+// ⬇️ Use one of the two import lines explained above
+import { StorageGate } from './src/bootstrap/StorageGate';
 
 export default function App() {
   const navTheme: Theme = {
@@ -22,12 +24,12 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          {/* Wrap the app in QueryClientProvider for React Query */}
-          <StatusBar style="light" />
-          <NavigationContainer theme={navTheme}>
-            <AppNavigator />
-            <StatusBar style="light" />
-          </NavigationContainer>
+          <StorageGate>
+            <NavigationContainer theme={navTheme}>
+              <AppNavigator />
+              <StatusBar style="light" />
+            </NavigationContainer>
+          </StorageGate>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
