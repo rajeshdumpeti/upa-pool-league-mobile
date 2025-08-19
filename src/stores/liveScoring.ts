@@ -1,7 +1,7 @@
 // src/stores/liveScoring.ts
 import { create } from 'zustand';
 import type { LiveMatch } from '../features/scoring/types';
-import { storage, STORE_KEYS, getJSON, setJSON, del } from '~/lib/storage';
+import { STORE_KEYS, getJSON, setJSON } from '~/lib/storage';
 // If you already have these in ../scoring/shotTypes, import them instead.
 // import type { ShotSymbol, BreakMark, Shot } from '../scoring/shotTypes';
 export type ShotSymbol = 'X' | 'O' | 'M' | 'S' | 'F' | 'V' | 'I' | 'T' | '8';
@@ -91,10 +91,7 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
       return;
     }
 
-    const { innings, defensiveShots, timeouts, fouls } = computeFromShots(
-      get().shots,
-      meta.rackNumber
-    );
+    const { innings, defensiveShots, timeouts } = computeFromShots(get().shots, meta.rackNumber);
 
     const rackEvent: LiveMatch['racks'][number] = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,

@@ -14,7 +14,7 @@ import type { LiveMatch } from './types';
 
 import { computeRackTally, SHOT_KEYS, BREAK_KEYS } from './utils/scoring';
 import ScoreStrip from './components/ScoreStrip';
-import { formatCompetitorLabel, formatBreakerLabel } from './utils/labels';
+import { formatCompetitorLabel } from './utils/labels';
 
 export default function LiveScoringScreen() {
   // ----- store state (read-only in render) -----------------------------------
