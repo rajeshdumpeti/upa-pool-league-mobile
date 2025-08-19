@@ -4,7 +4,7 @@
 // Keeps the screen lean and makes this logic easy to unit-test later.
 // -----------------------------------------------------------------------------
 
-import type { Shot, ShotSymbol, BreakMark } from '../../../stores/liveScoringStore';
+import type { Shot, ShotSymbol, BreakMark } from '../../../stores/liveScoring';
 
 /** Shot pad keys, matching your paper scoresheet symbols */
 export const SHOT_KEYS: ShotSymbol[] = ['X', 'O', 'M', 'S', 'F', 'V', 'I', 'T', '8'];

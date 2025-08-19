@@ -1,7 +1,7 @@
 // src/stores/liveScoring.ts
 import { create } from 'zustand';
 import type { LiveMatch } from '../features/scoring/types';
-
+import { storage, STORE_KEYS, getJSON, setJSON, del } from '~/lib/storage';
 // If you already have these in ../scoring/shotTypes, import them instead.
 // import type { ShotSymbol, BreakMark, Shot } from '../scoring/shotTypes';
 export type ShotSymbol = 'X' | 'O' | 'M' | 'S' | 'F' | 'V' | 'I' | 'T' | '8';
@@ -130,6 +130,56 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
   clear: () => set({ match: null, shots: [], rackMeta: undefined }),
 }));
 
+// -----------------------------------------------------------------------------
+// Persistence: hydrate on module load, persist on changes (throttled).
+// Schema: v1 keeps only { match, rackMeta, shots }.
+// -----------------------------------------------------------------------------
+
+type PersistedLiveScoringV1 = {
+  match: LiveScoringState['match'];
+  rackMeta: LiveScoringState['rackMeta'];
+  shots: LiveScoringState['shots'];
+};
+
+function serializeV1(s: LiveScoringState): PersistedLiveScoringV1 {
+  return {
+    match: s.match,
+    rackMeta: s.rackMeta,
+    shots: s.shots,
+  };
+}
+
+function hydrateFromStorage() {
+  try {
+    const data = getJSON<PersistedLiveScoringV1>(STORE_KEYS.liveScoring);
+    if (!data) return;
+    // Only set known fields; never trust storage blindly.
+    useLiveScoringStore.setState({
+      match: data.match ?? null,
+      rackMeta: data.rackMeta,
+      shots: Array.isArray(data.shots) ? data.shots : [],
+    });
+  } catch (e) {
+    console.warn('[liveScoring] hydrate failed:', e);
+  }
+}
+
+const persistThrottled = throttle((state: LiveScoringState) => {
+  try {
+    const payload = serializeV1(state);
+    setJSON(STORE_KEYS.liveScoring, payload);
+  } catch (e) {
+    console.warn('[liveScoring] persist failed:', e);
+  }
+}, 300);
+
+// Kick off hydration once at module load.
+
+// Subscribe to store changes and persist (no UI coupling)
+useLiveScoringStore.subscribe((s) => {
+  persistThrottled(s);
+});
+
 function computeFromShots(shots: Shot[], rackNumber: number) {
   const rs = shots.filter((s) => s.rackNumber === rackNumber);
   const innings = rs.filter((s) => s.symbol === 'X' || s.symbol === 'O' || s.symbol === 'M').length;
@@ -137,4 +187,35 @@ function computeFromShots(shots: Shot[], rackNumber: number) {
   const timeouts = rs.filter((s) => s.symbol === 'T').length;
   const fouls = rs.filter((s) => s.symbol === 'F' || s.symbol === 'V' || s.symbol === 'I').length;
   return { innings, defensiveShots, timeouts, fouls };
+}
+
+function throttle<T extends (...args: any[]) => void>(fn: T, wait = 300) {
+  let last = 0;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let queuedArgs: any[] | null = null;
+
+  return (...args: Parameters<T>) => {
+    const now = Date.now();
+    const remaining = wait - (now - last);
+
+    if (remaining <= 0) {
+      last = now;
+      fn(...args);
+    } else {
+      queuedArgs = args;
+      if (!timer) {
+        timer = setTimeout(() => {
+          last = Date.now();
+          fn(...(queuedArgs as any[]));
+          timer = null;
+          queuedArgs = null;
+        }, remaining);
+      }
+    }
+  };
+}
+
+export function bootstrapLiveScoringPersistence() {
+  // Hydrate from storage on module load
+  hydrateFromStorage();
 }
