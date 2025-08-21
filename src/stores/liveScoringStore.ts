@@ -25,6 +25,11 @@ type LiveScoringState = {
   shots: Shot[];
   rackMeta?: RackMeta;
 
+  // server identifiers
+  serverMatchId?: number;
+  serverMatchGameId?: number | null; // null means no game in progress
+
+  // Actions
   hydrateMatch: (m: LiveMatch) => void;
   startRack: (rackNumber: number, breakerId: number) => void;
   setBreakMark: (mark: BreakMark) => void;
@@ -33,6 +38,9 @@ type LiveScoringState = {
   completeRack: (winnerId: number, notes?: string) => void;
   resetRack: () => void;
   clear: () => void;
+
+  setServerMatchId: (id: number) => void;
+  setServerMatchGameId: (id: number | null) => void;
 };
 
 export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
@@ -44,6 +52,8 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
 
   startRack: (rackNumber, breakerId) => {
     const m = get().match;
+    const updated = get().match!;
+
     if (!m) {
       console.warn('startRack: no active match');
       return;
@@ -52,6 +62,11 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
       rackMeta: { rackNumber, breakerPlayerId: breakerId },
       match: { ...m, currentRack: rackNumber },
       shots: [],
+    });
+    notify('onRackStarted', {
+      match: updated,
+      rackNumber,
+      breakerId,
     });
   },
 
@@ -63,6 +78,8 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
 
   addShot: (playerId, symbol) => {
     const meta = get().rackMeta;
+    const m = get().match;
+
     if (!meta) {
       console.warn('addShot: start a rack first');
       return;
@@ -75,6 +92,13 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
       ts: Date.now(),
     };
     set({ shots: [...get().shots, newShot] });
+    if (m) {
+      notify('onShotAdded', {
+        match: m,
+        rackNumber: meta.rackNumber,
+        shot: newShot,
+      });
+    }
   },
 
   removeLastShot: () => {
@@ -86,12 +110,17 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
   completeRack: (winnerId, notes) => {
     const m = get().match;
     const meta = get().rackMeta;
+    const updated = get().match!;
+
     if (!m || !meta) {
       console.warn('completeRack: missing match or rackMeta');
       return;
     }
 
-    const { innings, defensiveShots, timeouts } = computeFromShots(get().shots, meta.rackNumber);
+    const { innings, defensiveShots, timeouts, fouls } = computeFromShots(
+      get().shots,
+      meta.rackNumber
+    );
 
     const rackEvent: LiveMatch['racks'][number] = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -114,6 +143,12 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
       rackMeta: { rackNumber: meta.rackNumber + 1 },
       shots: [],
     });
+    notify('onRackCompleted', {
+      match: updated,
+      rackNumber: meta.rackNumber,
+      winnerId,
+      summary: { innings, defensiveShots, timeouts, fouls },
+    });
   },
 
   resetRack: () => {
@@ -125,6 +160,9 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
   },
 
   clear: () => set({ match: null, shots: [], rackMeta: undefined }),
+
+  setServerMatchId: (id) => set({ serverMatchId: id }),
+  setServerMatchGameId: (id) => set({ serverMatchGameId: id }),
 }));
 
 // -----------------------------------------------------------------------------
@@ -215,4 +253,39 @@ function throttle<T extends (...args: any[]) => void>(fn: T, wait = 300) {
 export function bootstrapLiveScoringPersistence() {
   // Hydrate from storage on module load
   hydrateFromStorage();
+}
+// --- add under your existing type defs ---
+export type LiveScoringListener = {
+  onRackStarted?: (ctx: { match: LiveMatch; rackNumber: number; breakerId: number }) => void;
+
+  onShotAdded?: (ctx: { match: LiveMatch; rackNumber: number; shot: Shot }) => void;
+
+  onRackCompleted?: (ctx: {
+    match: LiveMatch;
+    rackNumber: number;
+    winnerId: number;
+    summary: { innings: number; defensiveShots: number; timeouts: number; fouls: number };
+  }) => void;
+};
+
+// Store a local registry (module‑level, not in Zustand state)
+const listeners = new Set<LiveScoringListener>();
+export function registerLiveScoringListener(l: LiveScoringListener) {
+  listeners.add(l);
+  return () => listeners.delete(l);
+}
+function notify<K extends keyof LiveScoringListener>(
+  event: K,
+  payload: Parameters<NonNullable<LiveScoringListener[K]>>[0]
+) {
+  listeners.forEach((l) => {
+    const fn = l[event] as any;
+    if (typeof fn === 'function') {
+      try {
+        fn(payload);
+      } catch (e) {
+        console.warn(`[liveScoring] listener ${String(event)} failed`, e);
+      }
+    }
+  });
 }
