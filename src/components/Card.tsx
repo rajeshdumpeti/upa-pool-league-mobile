@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewProps, Platform } from 'react-native';
-import { theme } from '../config/theme';
+import { theme } from '~/config/theme';
 
 export function Card({ style, ...props }: ViewProps) {
   return (

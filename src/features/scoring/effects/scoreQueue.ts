@@ -6,9 +6,9 @@
 // - No network calls here. C2.4 will read & flush this queue.
 // -----------------------------------------------------------------------------
 
-import { getJSON, setJSON, STORE_KEYS } from '../../../lib/storage';
-import type { CreateScoreEvent, ScoreEventType } from '../../../api/types';
-import type { Shot } from '../../../stores/liveScoringStore';
+import { getJSON, setJSON, STORE_KEYS } from '~/lib/storage';
+import type { CreateScoreEvent, ScoreEventType } from '~/api/types';
+import type { Shot } from '~/stores/liveScoringStore';
 
 /** Queue item that mirrors the API request shape closely */
 export type PendingScoreEvent = CreateScoreEvent & {

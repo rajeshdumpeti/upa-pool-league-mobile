@@ -1,17 +1,15 @@
-// src/app/bootstrap/StorageGate.tsx
+// src/bootstrap/StorageGate.tsx
 // -----------------------------------------------------------------------------
-// Purpose: Ensure storage (AsyncStorage fallback) is initialized before
-// the app renders screens that hydrate from storage.
-// In MMKV mode this resolves immediately; in Expo Go it preloads the cache.
+// Purpose: Ensure storage is initialized before UI renders. Then bootstrap stores.
 // -----------------------------------------------------------------------------
 
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { initStorage, storageMode } from '../lib/storage';
-import { bootstrapStores } from './bootstrapStores';
+import { initStorage, storageMode } from '~/lib/storage';
+import { bootstrapStores } from '~/bootstrap/bootstrapStores';
 
 export function StorageGate({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(storageMode !== 'async'); // MMKV or memory = ready
+  const [ready, setReady] = useState(storageMode !== 'async'); // MMKV/memory ready immediately
 
   useEffect(() => {
     let mounted = true;
@@ -19,8 +17,7 @@ export function StorageGate({ children }: { children: React.ReactNode }) {
       if (storageMode === 'async') {
         await initStorage();
       }
-      // Always bootstrap stores after storage is ready
-      bootstrapStores();
+      bootstrapStores(); // idempotent
       if (mounted) setReady(true);
     })();
     return () => {

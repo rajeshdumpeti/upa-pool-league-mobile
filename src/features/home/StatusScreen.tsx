@@ -1,11 +1,11 @@
 // src/features/home/StatusScreen.tsx
 import React from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { ENV } from '../../config/env';
-import { Card } from '../../components/Card';
-import { Title } from '../../components/Title';
-import { theme } from '../../config/theme';
-import { useHealth } from '../../hooks/useHealth';
+import { ENV } from '~/config/env';
+import { Card } from '~/components/Card';
+import { Title } from '~/components/Title';
+import { theme } from '~/config/theme';
+import { useHealth } from '~/hooks/useHealth';
 
 export default function StatusScreen() {
   const { data: health, isLoading, isError, refetch } = useHealth();

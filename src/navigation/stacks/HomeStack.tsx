@@ -2,8 +2,8 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Screens
-import HomeScreen from '../../features/home/HomeScreen';
-import StatusScreen from '../../features/home/StatusScreen';
+import HomeScreen from '~/features/home/HomeScreen';
+import StatusScreen from '~/features/home/StatusScreen';
 
 export type HomeStackParamList = {
   HomeMain: undefined;

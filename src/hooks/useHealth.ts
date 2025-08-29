@@ -1,6 +1,6 @@
 // src/hooks/useHealth.ts
 import { useQuery } from '@tanstack/react-query';
-import { getHealth } from '../api/health';
+import { getHealth } from '~/api/health';
 
 export function useHealth() {
   return useQuery({

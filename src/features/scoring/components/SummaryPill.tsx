@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text } from 'react-native';
-import { theme } from '../../../config/theme';
+import { theme } from '~/config/theme';
 
 type Props = {
   label: string;

@@ -1,32 +1,28 @@
 // src/features/scoring/LiveScoringScreen.tsx
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { theme } from '../../config/theme';
-import { Card } from '../../components/Card';
-import { Title } from '../../components/Title';
+import { theme } from '~/config/theme';
+import { Card } from '~/components/Card';
+import { Title } from '~/components/Title';
 import { SummaryPill } from './components/SummaryPill';
 
-import { useLiveScoringStore } from '../../stores/liveScoringStore';
-import type { Shot, ShotSymbol } from '../../stores/liveScoringStore';
+import { useLiveScoringStore } from '~/stores/liveScoringStore';
+import type { Shot, ShotSymbol } from '~/stores/liveScoringStore';
 import type { LiveMatch } from './types';
 
 import { computeRackTally, SHOT_KEYS, BREAK_KEYS } from './utils/scoring';
 import ScoreStrip from './components/ScoreStrip';
-import { formatCompetitorLabel } from './utils/labels';
+import { useMatchScore } from './selectors/matchScore';
 
 export default function LiveScoringScreen() {
-  // ----- store state (read-only in render) -----------------------------------
+  // read-only state
   const match = useLiveScoringStore((s) => s.match);
   const shots = useLiveScoringStore((s) => s.shots);
   const rackMeta = useLiveScoringStore((s) => s.rackMeta);
-  const homeTeamName = match?.home.name ?? 'Bullseys Breakers';
-  const awayTeamName = match?.away.name ?? 'Lossing Team';
-  const homeLabel = formatCompetitorLabel(match?.home?.name ?? homeTeamName);
-  const awayLabel = formatCompetitorLabel(match?.away?.name ?? awayTeamName);
 
-  // ----- store actions -------------------------------------------------------
+  // actions
   const hydrateMatch = useLiveScoringStore((s) => s.hydrateMatch);
   const startRack = useLiveScoringStore((s) => s.startRack);
   const setBreakMark = useLiveScoringStore((s) => s.setBreakMark);
@@ -34,79 +30,41 @@ export default function LiveScoringScreen() {
   const removeLastShot = useLiveScoringStore((s) => s.removeLastShot);
   const completeRack = useLiveScoringStore((s) => s.completeRack);
   const resetRack = useLiveScoringStore((s) => s.resetRack);
+  const ms = useMatchScore();
 
-  // ----- demo seed (runs once if no match yet) -------------------------------
+  // seed demo exactly once for local dev
+  const seededRef = useRef(false);
   useEffect(() => {
-    if (!match) {
-      const demo: LiveMatch = {
-        matchId: 'demo-1',
-        format: '8-ball',
-        raceToHome: 3,
-        raceToAway: 3,
-        home: { id: 1, name: 'Home Player', skill: 5 },
-        away: { id: 2, name: 'Away Player', skill: 4 },
-        currentRack: 1,
-        racks: [],
-        status: 'in_progress',
-      };
-      hydrateMatch(demo);
-      startRack(1, demo.home.id);
-    }
+    if (seededRef.current || match) return;
+    const demo: LiveMatch = {
+      matchId: 'demo-1',
+      format: '8-ball',
+      raceToHome: 3,
+      raceToAway: 3,
+      home: { id: 1, name: 'Home Player', skill: 5 },
+      away: { id: 2, name: 'Away Player', skill: 4 },
+      currentRack: 1,
+      racks: [],
+      status: 'in_progress',
+    };
+    hydrateMatch(demo);
+    startRack(1, demo.home.id);
+    seededRef.current = true;
   }, [match, hydrateMatch, startRack]);
 
   const rackNumber = rackMeta?.rackNumber ?? 1;
 
-  // after: const rackNumber = rackMeta?.rackNumber ?? 1;
-
-  const { homeWins, awayWins, breakerText } = useMemo(() => {
-    if (!match) {
-      return { homeWins: 0, awayWins: 0, breakerText: 'Break: —' };
-    }
-
-    // 1) wins
-    const homeWins = match.racks.filter((r) => r.winnerPlayerId === match.home.id).length;
-    const awayWins = match.racks.filter((r) => r.winnerPlayerId === match.away.id).length;
-
-    // 2) who breaks next (ID-based)
-    let nextBreakerId: number | undefined;
-    if (match.racks.length === 0) {
-      nextBreakerId = rackMeta?.breakerPlayerId ?? match.home.id;
-    } else {
-      const last = match.racks[match.racks.length - 1];
-      nextBreakerId =
-        last.breakerPlayerId === match.home.id
-          ? match.away.id
-          : last.breakerPlayerId === match.away.id
-            ? match.home.id
-            : undefined;
-    }
-
-    // 3) format breaker text from IDs (robust)
-    let breakerText = 'Break: —';
-    if (nextBreakerId === match.home.id) breakerText = `Break: ${match.home.name}`;
-    else if (nextBreakerId === match.away.id) breakerText = `Break: ${match.away.name}`;
-
-    return { homeWins, awayWins, breakerText };
-  }, [match, rackMeta]);
-
-  // ----- memoized tallies per current rack ----------------------------------
+  // stats for current rack only
   const tally = useMemo(() => computeRackTally(shots as Shot[], rackNumber), [shots, rackNumber]);
 
-  // ----- handlers (event-driven writes only; no writes in render) ------------
+  // handlers
   const onStartRack = (breakerId: number) => {
     if (!match) return;
     startRack(rackNumber, breakerId);
   };
+  const onAddShot = (playerId: number, symbol: ShotSymbol) => addShot(playerId, symbol);
+  const onCompleteRack = (winnerId: number) => completeRack(winnerId, '');
 
-  const onAddShot = (playerId: number, symbol: ShotSymbol) => {
-    addShot(playerId, symbol);
-  };
-
-  const onCompleteRack = (winnerId: number) => {
-    completeRack(winnerId, ''); // optional notes
-  };
-
-  // ----- UI ------------------------------------------------------------------
   if (!match) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -118,12 +76,13 @@ export default function LiveScoringScreen() {
   return (
     <ScrollView className="flex-1" contentContainerClassName="pb-6">
       <ScoreStrip
-        homeLabel={homeLabel}
-        awayLabel={awayLabel}
-        homeWins={homeWins}
-        awayWins={awayWins}
-        breakerLabel={breakerText}
+        homeWins={ms.homeWins}
+        awayWins={ms.awayWins}
+        homeName={ms.homeName}
+        awayName={ms.awayName}
+        breakerName={ms.breakerName}
       />
+
       {/* Header */}
       <View className="px-5 pt-4">
         <Text className="text-lg font-semibold text-zinc-900">{match.format.toUpperCase()}</Text>
@@ -135,7 +94,6 @@ export default function LiveScoringScreen() {
       {/* Current rack / breaker */}
       <Card className="mx-5 mt-4">
         <Title>Rack {rackNumber}</Title>
-
         <View className="mt-2 flex-row gap-3">
           <TouchableOpacity
             className="rounded-xl px-3 py-2"
@@ -143,7 +101,6 @@ export default function LiveScoringScreen() {
             onPress={() => onStartRack(match.home.id)}>
             <Text className="text-zinc-700">Break: {match.home.name}</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             className="rounded-xl px-3 py-2"
             style={{ backgroundColor: theme.colors.surface.background }}
@@ -255,7 +212,7 @@ export default function LiveScoringScreen() {
         </View>
       </Card>
 
-      {/* History (existing racks) */}
+      {/* History */}
       {match.racks.length > 0 && (
         <Card className="mx-5 mb-6 mt-4">
           <Title>History</Title>

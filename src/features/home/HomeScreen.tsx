@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
+import type { HomeStackParamList } from '~/navigation/stacks/HomeStack';
 import { TouchableOpacity, Text, View } from 'react-native';
 
 type Nav = NativeStackNavigationProp<HomeStackParamList>;

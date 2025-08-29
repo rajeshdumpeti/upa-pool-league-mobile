@@ -1,6 +1,6 @@
 // src/api/axiosClient.ts
 import axios from 'axios';
-import { ENV } from '../config/env';
+import { ENV } from '~/config/env';
 
 // ENV.apiBase already includes /api/v1 in your config
 export const axiosClient = axios.create({

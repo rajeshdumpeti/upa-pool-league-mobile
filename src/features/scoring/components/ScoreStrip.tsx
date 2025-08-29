@@ -1,36 +1,36 @@
 // src/features/scoring/components/ScoreStrip.tsx
 // -----------------------------------------------------------------------------
-// Purpose: Compact, presentational "score line" at top of Live Scoring.
-// Now receives preformatted labels so backend can switch to "Team: Player"
-// without changing this component.
+// Purpose: Compact, read-only banner showing score and next breaker.
+// Presentation-only. Receives data via props (no store access).
 // -----------------------------------------------------------------------------
-
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../../../config/theme';
+import { theme } from '~/config/theme';
 
 type Props = {
-  homeLabel: string; // e.g., "Sharks: Alex"
-  awayLabel: string; // e.g., "Wolves: Jamie"
+  className?: string;
   homeWins: number;
   awayWins: number;
-  breakerLabel: string; // e.g., "Break: Alex"
-  className?: string;
+  homeName?: string;
+  awayName?: string;
+  breakerName?: string;
 };
 
 export default function ScoreStrip({
-  homeLabel,
-  awayLabel,
+  className = '',
   homeWins,
   awayWins,
-  breakerLabel,
-  className = '',
+  homeName,
+  awayName,
+  breakerName,
 }: Props) {
+  const breakerLabel = breakerName ? `Break: ${breakerName}` : 'Break: —';
+
   return (
     <View
       className={[
-        'mx-5 mb-2 mt-4 rounded-2xl px-4 py-3',
+        'mx-5 mb-2 mt-3 rounded-2xl px-4 py-3',
         'flex-row items-center justify-between',
         className,
       ].join(' ')}
@@ -39,14 +39,16 @@ export default function ScoreStrip({
         borderColor: theme.colors.surface.border,
         borderWidth: 1,
       }}>
+      {/* Score */}
       <View className="flex-row items-center">
         <Text className="text-base font-semibold" style={{ color: theme.colors.text.primary }}>
-          {homeLabel} <Text style={{ color: theme.colors.brand.accent }}>{homeWins}</Text>
+          {homeName ?? 'Home'} <Text style={{ color: theme.colors.brand.accent }}>{homeWins}</Text>
           {'  —  '}
-          <Text style={{ color: theme.colors.brand.accent }}>{awayWins}</Text> {awayLabel}
+          <Text style={{ color: theme.colors.brand.accent }}>{awayWins}</Text> {awayName ?? 'Away'}
         </Text>
       </View>
 
+      {/* Break info */}
       <View className="flex-row items-center">
         <Ionicons
           name="golf-outline"

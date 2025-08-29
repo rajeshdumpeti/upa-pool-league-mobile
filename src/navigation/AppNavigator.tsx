@@ -2,15 +2,15 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { theme } from '../config/theme';
+import { theme } from '~/config/theme';
 // Global Header
-import AppHeader from '../components/AppHeader';
+import AppHeader from '~/components/AppHeader';
 
 // Screens
-import PreMatchScreen from '../features/scoring/PreMatchScreen';
-import LiveScoringScreen from '../features/scoring/LiveScoringScreen';
-import PostMatchReview from '../features/scoring/PostMatchReview';
-import ScoringScreen from '../features/scoring/ScoringScreen';
+import PreMatchScreen from '~/features/scoring/PreMatchScreen';
+import LiveScoringScreen from '~/features/scoring/LiveScoringScreen';
+import PostMatchReview from '~/features/scoring/PostMatchReview';
+import ScoringScreen from '~/features/scoring/ScoringScreen';
 import HomeStack from './stacks/HomeStack';
 import { Ionicons } from '@expo/vector-icons';
 import { tabIcons } from './tab-icons';

@@ -1,10 +1,10 @@
 // src/features/scoring/effects/remoteSync.ts
-import { registerLiveScoringListener, useLiveScoringStore } from '../../../stores/liveScoringStore';
-import { REMOTE_SCORING_ENABLED } from '../../../config/flags';
+import { registerLiveScoringListener, useLiveScoringStore } from '~/stores/liveScoringStore';
+import { REMOTE_SCORING_ENABLED } from '~/config/flags';
 
-import { createMatchGame, completeMatchGame } from '../../../api/matches';
-import { createScoreEventsBatch } from '../../../api/events';
-import type { CreateMatchGame, CompleteMatchGame } from '../../../api/types';
+import { createMatchGame, completeMatchGame } from '~/api/matches';
+import { createScoreEventsBatch } from '~/api/events';
+import type { CreateMatchGame, CompleteMatchGame } from '~/api/types';
 import { splitQueueByGame, keepOnly } from './scoreQueue';
 
 let unreg: (() => void) | null = null;
