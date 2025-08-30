@@ -1,4 +1,8 @@
-// src/features/scoring/components/ScoreStrip.tsx
+// -----------------------------------------------------------------------------
+// Purpose: Compact, read-only banner that shows a provided score text + breaker.
+// Presentation-only. Receives data via props.
+// -----------------------------------------------------------------------------
+
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,21 +10,11 @@ import { theme } from '~/config/theme';
 
 type Props = {
   className?: string;
-  homeName: string;
-  awayName: string;
-  homeWins: number;
-  awayWins: number;
-  breakerLabel: string; // "Break: X" or "Break: —"
+  scoreText: string; // e.g., "Home 2/3 — 1/3 Away"
+  breakerLabel: string; // e.g., "Break: Home Player" or "Break: —"
 };
 
-function ScoreStripBase({
-  className = '',
-  homeName,
-  awayName,
-  homeWins,
-  awayWins,
-  breakerLabel,
-}: Props) {
+export default function ScoreStrip({ className = '', scoreText, breakerLabel }: Props) {
   return (
     <View
       className={[
@@ -35,11 +29,10 @@ function ScoreStripBase({
       }}>
       <View className="flex-row items-center">
         <Text className="text-base font-semibold" style={{ color: theme.colors.text.primary }}>
-          {homeName} <Text style={{ color: theme.colors.brand.accent }}>{homeWins}</Text>
-          {'  —  '}
-          <Text style={{ color: theme.colors.brand.accent }}>{awayWins}</Text> {awayName}
+          {scoreText}
         </Text>
       </View>
+
       <View className="flex-row items-center">
         <Ionicons
           name="golf-outline"
@@ -54,5 +47,3 @@ function ScoreStripBase({
     </View>
   );
 }
-
-export default React.memo(ScoreStripBase);
