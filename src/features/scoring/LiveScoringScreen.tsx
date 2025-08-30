@@ -71,6 +71,9 @@ export default function LiveScoringScreen() {
 
   const scoreText = `${ms.homeName ?? 'Home'} ${ms.homeWins}/${ms.raceToHome ?? '—'} — ${ms.awayWins}/${ms.raceToAway ?? '—'} ${ms.awayName ?? 'Away'}`;
 
+  const homeProgress = ms.raceToHome ? Math.min(1, ms.homeWins / ms.raceToHome) : 0;
+  const awayProgress = ms.raceToAway ? Math.min(1, ms.awayWins / ms.raceToAway) : 0;
+
   // stats for current rack only
   const tally = useMemo(() => computeRackTally(shots as Shot[], rackNumber), [shots, rackNumber]);
 
@@ -92,7 +95,13 @@ export default function LiveScoringScreen() {
 
   return (
     <ScrollView className="flex-1" contentContainerClassName="pb-6">
-      <ScoreStrip scoreText={scoreText} breakerLabel={breakerLabel} />
+      <ScoreStrip
+        scoreText={scoreText}
+        breakerLabel={breakerLabel}
+        homeProgress={homeProgress}
+        awayProgress={awayProgress}
+      />
+
       {race.isOver && (
         <RaceBanner
           winnerName={race.winnerName ?? 'Winner'}
