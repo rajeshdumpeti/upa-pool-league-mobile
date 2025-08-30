@@ -2,6 +2,8 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { TABS } from '~/navigation/routes'; // if you want to jump to PostMatch tab later
 
 import { theme } from '~/config/theme';
 import { Card } from '~/components/Card';
@@ -14,8 +16,11 @@ import type { LiveMatch } from './types';
 
 import { computeRackTally, SHOT_KEYS, BREAK_KEYS } from './utils/scoring';
 import ScoreStrip from './components/ScoreStrip';
+import RaceBanner from './components/RaceBanner';
+
 import { useShallow } from 'zustand/react/shallow';
 import { getMatchScore } from './selectors/matchScore';
+import { useRaceStatus } from './selectors/raceStatus';
 import { DEV_SEED_LIVE_SCORING } from '~/config/flags';
 
 export default function LiveScoringScreen() {
@@ -32,6 +37,10 @@ export default function LiveScoringScreen() {
   const removeLastShot = useLiveScoringStore((s) => s.removeLastShot);
   const completeRack = useLiveScoringStore((s) => s.completeRack);
   const resetRack = useLiveScoringStore((s) => s.resetRack);
+
+  const race = useRaceStatus();
+  const inputsDisabled = race.isOver;
+  const nav = useNavigation<any>();
 
   // seed demo exactly once for local dev
   const seededRef = useRef(false);
@@ -57,7 +66,10 @@ export default function LiveScoringScreen() {
   const rackNumber = rackMeta?.rackNumber ?? 1;
 
   const ms = useLiveScoringStore(useShallow((state) => getMatchScore(state)));
+
   const breakerLabel = ms.breakerName ? `Break: ${ms.breakerName}` : 'Break: —';
+
+  const scoreText = `${ms.homeName ?? 'Home'} ${ms.homeWins}/${ms.raceToHome ?? '—'} — ${ms.awayWins}/${ms.raceToAway ?? '—'} ${ms.awayName ?? 'Away'}`;
 
   // stats for current rack only
   const tally = useMemo(() => computeRackTally(shots as Shot[], rackNumber), [shots, rackNumber]);
@@ -80,13 +92,17 @@ export default function LiveScoringScreen() {
 
   return (
     <ScrollView className="flex-1" contentContainerClassName="pb-6">
-      <ScoreStrip
-        homeWins={ms.homeWins}
-        awayWins={ms.awayWins}
-        homeName={ms.homeName ?? 'Home'}
-        awayName={ms.awayName ?? 'Away'}
-        breakerLabel={breakerLabel}
-      />
+      <ScoreStrip scoreText={scoreText} breakerLabel={breakerLabel} />
+      {race.isOver && (
+        <RaceBanner
+          winnerName={race.winnerName ?? 'Winner'}
+          onContinue={() => {
+            // For now we simply keep you here; later we can route to PostMatch.
+            // Example if you already have a PostMatch tab/screen:
+            nav.navigate(TABS.POST_MATCH as never);
+          }}
+        />
+      )}
 
       {/* Header */}
       <View className="px-5 pt-4">
@@ -153,7 +169,11 @@ export default function LiveScoringScreen() {
                 key={`h-${s}`}
                 onPress={() => onAddShot(match.home.id, s)}
                 className="h-10 w-12 items-center justify-center rounded-xl"
-                style={{ backgroundColor: theme.colors.surface.background }}>
+                disabled={inputsDisabled}
+                style={{
+                  opacity: inputsDisabled ? 0.4 : 1,
+                  backgroundColor: theme.colors.surface.background,
+                }}>
                 <Text className="font-semibold text-zinc-700">{s}</Text>
               </TouchableOpacity>
             ))}
@@ -169,7 +189,11 @@ export default function LiveScoringScreen() {
                 key={`a-${s}`}
                 onPress={() => onAddShot(match.away.id, s)}
                 className="h-10 w-12 items-center justify-center rounded-xl"
-                style={{ backgroundColor: theme.colors.surface.background }}>
+                disabled={inputsDisabled}
+                style={{
+                  opacity: inputsDisabled ? 0.4 : 1,
+                  backgroundColor: theme.colors.surface.background,
+                }}>
                 <Text className="font-semibold text-zinc-700">{s}</Text>
               </TouchableOpacity>
             ))}
@@ -204,13 +228,21 @@ export default function LiveScoringScreen() {
         <View className="mt-4 flex-row gap-3">
           <TouchableOpacity
             className="h-12 flex-1 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: theme.colors.brand.accent }}
+            disabled={inputsDisabled}
+            style={{
+              backgroundColor: inputsDisabled ? '#cbd5e1' : theme.colors.brand.accent,
+              opacity: inputsDisabled ? 0.7 : 1,
+            }}
             onPress={() => onCompleteRack(match.home.id)}>
             <Text className="font-semibold text-white">Rack to {match.home.name}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="h-12 flex-1 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: theme.colors.brand.accent }}
+            disabled={inputsDisabled}
+            style={{
+              backgroundColor: inputsDisabled ? '#cbd5e1' : theme.colors.brand.accent,
+              opacity: inputsDisabled ? 0.7 : 1,
+            }}
             onPress={() => onCompleteRack(match.away.id)}>
             <Text className="font-semibold text-white">Rack to {match.away.name}</Text>
           </TouchableOpacity>

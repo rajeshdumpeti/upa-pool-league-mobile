@@ -10,6 +10,8 @@ import { useShallow } from 'zustand/react/shallow';
 export type MatchScore = {
   homeWins: number;
   awayWins: number;
+  raceToHome?: number;
+  raceToAway?: number;
   breakerId?: number;
   breakerName?: string;
   homeName?: string;
@@ -19,18 +21,21 @@ export type MatchScore = {
 // pure derivation (no writes, no side effects)
 export function getMatchScore(s: LiveScoringState): MatchScore {
   const m = s.match;
-  if (!m) return { homeWins: 0, awayWins: 0 };
+  if (!m) return { homeWins: 0, awayWins: 0, raceToHome: undefined, raceToAway: undefined };
 
   const homeWins = m.racks.filter((r) => r.winnerPlayerId === m.home.id).length;
   const awayWins = m.racks.filter((r) => r.winnerPlayerId === m.away.id).length;
 
   let breakerId: number | undefined;
-  if (s.rackMeta?.breakerPlayerId) {
-    breakerId = s.rackMeta.breakerPlayerId;
-  } else if (m.racks.length > 0) {
+  if (s.rackMeta?.breakerPlayerId) breakerId = s.rackMeta.breakerPlayerId;
+  else if (m.racks.length > 0) {
     const last = m.racks[m.racks.length - 1];
-    if (last.breakerPlayerId === m.home.id) breakerId = m.away.id;
-    else if (last.breakerPlayerId === m.away.id) breakerId = m.home.id;
+    breakerId =
+      last.breakerPlayerId === m.home.id
+        ? m.away.id
+        : last.breakerPlayerId === m.away.id
+          ? m.home.id
+          : undefined;
   } else {
     breakerId = m.home.id;
   }
@@ -41,6 +46,8 @@ export function getMatchScore(s: LiveScoringState): MatchScore {
   return {
     homeWins,
     awayWins,
+    raceToHome: m.raceToHome,
+    raceToAway: m.raceToAway,
     breakerId,
     breakerName,
     homeName: m.home.name,
