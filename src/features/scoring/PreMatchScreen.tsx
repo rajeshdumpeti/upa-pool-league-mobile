@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useLiveScoringStore } from '~/stores/liveScoringStore';
-import { TABS, LIVE_SCORE_STACK } from '~/navigation/routes';
+import { TABS } from '~/navigation/routes';
 import type { LiveMatch } from './types';
 
 import { createMatch } from '~/api/matches';
