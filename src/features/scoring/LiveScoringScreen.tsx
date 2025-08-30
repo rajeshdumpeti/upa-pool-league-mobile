@@ -3,7 +3,8 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { TABS } from '~/navigation/routes'; // if you want to jump to PostMatch tab later
+import { getRaceState } from './selectors/raceState';
+import { TABS } from '~/navigation/routes'; // adjust to your app
 
 import { theme } from '~/config/theme';
 import { Card } from '~/components/Card';
@@ -16,11 +17,9 @@ import type { LiveMatch } from './types';
 
 import { computeRackTally, SHOT_KEYS, BREAK_KEYS } from './utils/scoring';
 import ScoreStrip from './components/ScoreStrip';
-import RaceBanner from './components/RaceBanner';
 
 import { useShallow } from 'zustand/react/shallow';
 import { getMatchScore } from './selectors/matchScore';
-import { useRaceStatus } from './selectors/raceStatus';
 import { DEV_SEED_LIVE_SCORING } from '~/config/flags';
 
 export default function LiveScoringScreen() {
@@ -38,9 +37,17 @@ export default function LiveScoringScreen() {
   const completeRack = useLiveScoringStore((s) => s.completeRack);
   const resetRack = useLiveScoringStore((s) => s.resetRack);
 
-  const race = useRaceStatus();
-  const inputsDisabled = race.isOver;
+  const race = getRaceState(useLiveScoringStore.getState());
+  const inputsDisabled = race.raceDone;
   const nav = useNavigation<any>();
+
+  const navToPostMatch = () => {
+    // If LiveScore tab itself hosts a stack:
+    // nav.navigate(TABS.LIVE_SCORE as never, { screen: LIVE_SCORE_STACK.POST_MATCH } as never);
+
+    // If PostMatch is its own tab/route, adjust accordingly:
+    nav.navigate(TABS.POST_MATCH as never);
+  };
 
   // seed demo exactly once for local dev
   const seededRef = useRef(false);
@@ -111,17 +118,6 @@ export default function LiveScoringScreen() {
             serverMatchId: {String(serverMatchId ?? '—')}
           </Text>
         </View>
-      )}
-
-      {race.isOver && (
-        <RaceBanner
-          winnerName={race.winnerName ?? 'Winner'}
-          onContinue={() => {
-            // For now we simply keep you here; later we can route to PostMatch.
-            // Example if you already have a PostMatch tab/screen:
-            nav.navigate(TABS.POST_MATCH as never);
-          }}
-        />
       )}
 
       {/* Header */}
@@ -268,6 +264,21 @@ export default function LiveScoringScreen() {
           </TouchableOpacity>
         </View>
       </Card>
+      {race.raceDone && (
+        <Card className="mx-5 mt-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="font-medium text-zinc-700">
+              ✓ Race won — {race.winnerSide === 'home' ? match.home.name : match.away.name}
+            </Text>
+            <TouchableOpacity
+              onPress={navToPostMatch}
+              className="rounded-xl px-3 py-2"
+              style={{ backgroundColor: theme.colors.brand.accent }}>
+              <Text className="font-semibold text-white">Finish Match</Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
+      )}
 
       {/* History */}
       {match.racks.length > 0 && (
