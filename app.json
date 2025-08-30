@@ -8,6 +8,7 @@
       "policy": "sdkVersion"
     },
     "extra": {
+      "devSeedLiveScoring": true,
       "dev": {
         "API_BASE": "http://localhost:8000/api/v1",
         "CMS_BASE": "https://dev-cms.example.com",

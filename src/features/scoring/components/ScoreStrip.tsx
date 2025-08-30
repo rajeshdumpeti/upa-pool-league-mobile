@@ -1,8 +1,4 @@
 // src/features/scoring/components/ScoreStrip.tsx
-// -----------------------------------------------------------------------------
-// Purpose: Compact, read-only banner showing score and next breaker.
-// Presentation-only. Receives data via props (no store access).
-// -----------------------------------------------------------------------------
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,23 +6,21 @@ import { theme } from '~/config/theme';
 
 type Props = {
   className?: string;
+  homeName: string;
+  awayName: string;
   homeWins: number;
   awayWins: number;
-  homeName?: string;
-  awayName?: string;
-  breakerName?: string;
+  breakerLabel: string; // "Break: X" or "Break: —"
 };
 
-export default function ScoreStrip({
+function ScoreStripBase({
   className = '',
-  homeWins,
-  awayWins,
   homeName,
   awayName,
-  breakerName,
+  homeWins,
+  awayWins,
+  breakerLabel,
 }: Props) {
-  const breakerLabel = breakerName ? `Break: ${breakerName}` : 'Break: —';
-
   return (
     <View
       className={[
@@ -39,16 +33,13 @@ export default function ScoreStrip({
         borderColor: theme.colors.surface.border,
         borderWidth: 1,
       }}>
-      {/* Score */}
       <View className="flex-row items-center">
         <Text className="text-base font-semibold" style={{ color: theme.colors.text.primary }}>
-          {homeName ?? 'Home'} <Text style={{ color: theme.colors.brand.accent }}>{homeWins}</Text>
+          {homeName} <Text style={{ color: theme.colors.brand.accent }}>{homeWins}</Text>
           {'  —  '}
-          <Text style={{ color: theme.colors.brand.accent }}>{awayWins}</Text> {awayName ?? 'Away'}
+          <Text style={{ color: theme.colors.brand.accent }}>{awayWins}</Text> {awayName}
         </Text>
       </View>
-
-      {/* Break info */}
       <View className="flex-row items-center">
         <Ionicons
           name="golf-outline"
@@ -63,3 +54,5 @@ export default function ScoreStrip({
     </View>
   );
 }
+
+export default React.memo(ScoreStripBase);
