@@ -1,22 +1,59 @@
+// src/features/scoring/PreMatchScreen.tsx
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, View, Text, TextInput, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+
+import { useLiveScoringStore } from '~/stores/liveScoringStore';
+import { TABS, LIVE_SCORE_STACK } from '~/navigation/routes';
+import type { LiveMatch } from './types';
 
 type Format = '8-ball' | '9-ball' | '10-ball';
 const FORMATS: Format[] = ['8-ball', '9-ball', '10-ball'];
 
 export default function PreMatchScreen() {
   const nav = useNavigation<any>();
+
+  // --- local form state ------------------------------------------------------
   const [format, setFormat] = useState<Format>('8-ball');
-  const [tableNo, setTableNo] = useState('');
+  const [tableNo, setTableNo] = useState<string>('');
   const [coinToss, setCoinToss] = useState<'Home' | 'Away' | null>(null);
 
-  const onStart = () => {
-    const tempMatchId = String(Date.now());
-    nav.navigate('LiveScoring', { matchId: tempMatchId, meta: { format, coinToss, tableNo } });
+  // --- handlers --------------------------------------------------------------
+  const onStartMatch = () => {
+    if (!coinToss) return; // guard: require a winner
+
+    // Build a minimal LiveMatch payload for LiveScoring
+    const match: LiveMatch = {
+      matchId: String(Date.now()),
+      format, // <-- from local state
+      raceToHome: 3, // TODO: compute from rules/skills
+      raceToAway: 3, // TODO: compute from rules/skills
+      home: { id: 1, name: 'Home Player', skill: 5 }, // TODO: from lineup
+      away: { id: 2, name: 'Away Player', skill: 4 }, // TODO: from lineup
+      currentRack: 1,
+      racks: [],
+      status: 'in_progress',
+    };
+
+    // 1) hydrate the scoring store
+    const { hydrateMatch, startRack } = useLiveScoringStore.getState();
+    hydrateMatch(match);
+
+    // 2) start rack 1 with the coin-toss winner
+    const breakerId = coinToss === 'Home' ? match.home.id : match.away.id;
+    startRack(1, breakerId);
+
+    // (Optional) you can persist tableNo if you add it to store later
+    // e.g., useLiveScoringStore.getState().setTableNo?.(tableNo || undefined);
+
+    // 3) navigate to the LiveScore tab (and optionally the inner screen)
+    // If your LiveScore tab contains a stack screen named LIVE_SCORING:
+    nav.navigate(TABS.LIVE_SCORE as never, { screen: LIVE_SCORE_STACK.LIVE_SCORING } as never);
+    // nav.navigate(TABS.LIVE_SCORE as never);
   };
 
+  // --- UI --------------------------------------------------------------------
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       {/* Top bar */}
@@ -122,7 +159,7 @@ export default function PreMatchScreen() {
           <View className="flex-col">
             <Pressable
               disabled={!coinToss}
-              onPress={onStart}
+              onPress={onStartMatch}
               className={`items-center justify-center rounded-xl py-3 ${
                 coinToss ? 'bg-blue-900' : 'bg-slate-300'
               }`}

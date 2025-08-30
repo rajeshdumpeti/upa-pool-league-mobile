@@ -14,7 +14,9 @@ import type { LiveMatch } from './types';
 
 import { computeRackTally, SHOT_KEYS, BREAK_KEYS } from './utils/scoring';
 import ScoreStrip from './components/ScoreStrip';
-import { useMatchScore } from './selectors/matchScore';
+import { useShallow } from 'zustand/react/shallow';
+import { getMatchScore } from './selectors/matchScore';
+import { DEV_SEED_LIVE_SCORING } from '~/config/flags';
 
 export default function LiveScoringScreen() {
   // read-only state
@@ -30,12 +32,12 @@ export default function LiveScoringScreen() {
   const removeLastShot = useLiveScoringStore((s) => s.removeLastShot);
   const completeRack = useLiveScoringStore((s) => s.completeRack);
   const resetRack = useLiveScoringStore((s) => s.resetRack);
-  const ms = useMatchScore();
 
   // seed demo exactly once for local dev
   const seededRef = useRef(false);
   useEffect(() => {
     if (seededRef.current || match) return;
+    if (!DEV_SEED_LIVE_SCORING) return;
     const demo: LiveMatch = {
       matchId: 'demo-1',
       format: '8-ball',
@@ -53,6 +55,9 @@ export default function LiveScoringScreen() {
   }, [match, hydrateMatch, startRack]);
 
   const rackNumber = rackMeta?.rackNumber ?? 1;
+
+  const ms = useLiveScoringStore(useShallow((state) => getMatchScore(state)));
+  const breakerLabel = ms.breakerName ? `Break: ${ms.breakerName}` : 'Break: —';
 
   // stats for current rack only
   const tally = useMemo(() => computeRackTally(shots as Shot[], rackNumber), [shots, rackNumber]);
@@ -78,9 +83,9 @@ export default function LiveScoringScreen() {
       <ScoreStrip
         homeWins={ms.homeWins}
         awayWins={ms.awayWins}
-        homeName={ms.homeName}
-        awayName={ms.awayName}
-        breakerName={ms.breakerName}
+        homeName={ms.homeName ?? 'Home'}
+        awayName={ms.awayName ?? 'Away'}
+        breakerLabel={breakerLabel}
       />
 
       {/* Header */}
