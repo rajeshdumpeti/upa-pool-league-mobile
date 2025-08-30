@@ -96,10 +96,18 @@ export default function LiveScoringScreen() {
   return (
     <ScrollView className="flex-1" contentContainerClassName="pb-6">
       <ScoreStrip
-        scoreText={scoreText}
+        homeName={ms.homeName ?? 'Home'}
+        awayName={ms.awayName ?? 'Away'}
+        homeWins={ms.homeWins}
+        awayWins={ms.awayWins}
         breakerLabel={breakerLabel}
-        homeProgress={homeProgress}
-        awayProgress={awayProgress}
+        // NEW
+        homeProgress={ms.homeProgress}
+        awayProgress={ms.awayProgress}
+        homeOnHill={ms.homeOnHill}
+        awayOnHill={ms.awayOnHill}
+        raceDone={ms.raceDone}
+        winnerSide={ms.winnerSide}
       />
 
       {race.isOver && (
