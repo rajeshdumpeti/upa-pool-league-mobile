@@ -1,12 +1,24 @@
 // src/features/scoring/PreMatchScreen.tsx
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, View, Text, TextInput, Pressable } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useLiveScoringStore } from '~/stores/liveScoringStore';
 import { TABS, LIVE_SCORE_STACK } from '~/navigation/routes';
 import type { LiveMatch } from './types';
+
+import { createMatch } from '~/api/matches';
+import type { MatchCreateRequest } from '~/api/types';
 
 type Format = '8-ball' | '9-ball' | '10-ball';
 const FORMATS: Format[] = ['8-ball', '9-ball', '10-ball'];
@@ -18,41 +30,63 @@ export default function PreMatchScreen() {
   const [format, setFormat] = useState<Format>('8-ball');
   const [tableNo, setTableNo] = useState<string>('');
   const [coinToss, setCoinToss] = useState<'Home' | 'Away' | null>(null);
-
+  const [submitting, setSubmitting] = useState(false);
   // --- handlers --------------------------------------------------------------
-  const onStartMatch = () => {
-    if (!coinToss) return; // guard: require a winner
+  const onStartMatch = async () => {
+    if (!coinToss) return;
 
-    // Build a minimal LiveMatch payload for LiveScoring
-    const match: LiveMatch = {
-      matchId: String(Date.now()),
-      format, // <-- from local state
-      raceToHome: 3, // TODO: compute from rules/skills
-      raceToAway: 3, // TODO: compute from rules/skills
-      home: { id: 1, name: 'Home Player', skill: 5 }, // TODO: from lineup
-      away: { id: 2, name: 'Away Player', skill: 4 }, // TODO: from lineup
-      currentRack: 1,
-      racks: [],
-      status: 'in_progress',
-    };
+    setSubmitting(true);
+    try {
+      // Build server request (minimal but valid)
+      const req: MatchCreateRequest = {
+        format,
+        home_team: { id: 101, name: 'Home Team' }, // TODO: real IDs once lineup/team picker is ready
+        away_team: { id: 202, name: 'Away Team' },
+        home_lineup: [{ order: 1, player: { id: 1, name: 'Home Player', skill: 5 } }],
+        away_lineup: [{ order: 1, player: { id: 2, name: 'Away Player', skill: 4 } }],
+        coin_toss_winner_team_id: coinToss === 'Home' ? 101 : 202,
+        notes: tableNo ? `Table ${tableNo}` : undefined,
+      };
 
-    // 1) hydrate the scoring store
-    const { hydrateMatch, startRack } = useLiveScoringStore.getState();
-    hydrateMatch(match);
+      // 1) try server
+      let serverMatchId: number | undefined;
+      try {
+        const created = await createMatch(req);
+        serverMatchId = created.id;
+      } catch (e) {
+        // non-fatal: we’ll continue offline
+        console.warn('[PreMatch] createMatch failed, using local offline mode', e);
+        Alert.alert('Offline mode', 'Server is unavailable. You can still score locally.');
+      }
 
-    // 2) start rack 1 with the coin-toss winner
-    const breakerId = coinToss === 'Home' ? match.home.id : match.away.id;
-    startRack(1, breakerId);
+      // 2) build local LiveMatch payload (used by Live Scoring UI)
+      const match: LiveMatch = {
+        matchId: String(serverMatchId ?? Date.now()), // prefer server id for traceability
+        format,
+        raceToHome: 3, // TODO: compute from rules/skills later
+        raceToAway: 3, // TODO: compute from rules/skills later
+        home: { id: 1, name: 'Home Player', skill: 5 },
+        away: { id: 2, name: 'Away Player', skill: 4 },
+        currentRack: 1,
+        racks: [],
+        status: 'in_progress',
+      };
 
-    // (Optional) you can persist tableNo if you add it to store later
-    // e.g., useLiveScoringStore.getState().setTableNo?.(tableNo || undefined);
+      // 3) hydrate store + set server ids if we have them
+      const { hydrateMatch, startRack, setServerMatchId } = useLiveScoringStore.getState();
+      hydrateMatch(match);
+      if (serverMatchId) setServerMatchId(serverMatchId);
 
-    // 3) navigate to the LiveScore tab (and optionally the inner screen)
-    // If your LiveScore tab contains a stack screen named LIVE_SCORING:
-    nav.navigate(TABS.LIVE_SCORE as never, { screen: LIVE_SCORE_STACK.LIVE_SCORING } as never);
-    // nav.navigate(TABS.LIVE_SCORE as never);
+      // 4) start rack 1 with the coin-toss winner
+      const breakerId = coinToss === 'Home' ? match.home.id : match.away.id;
+      startRack(1, breakerId);
+
+      // 5) navigate to Live Scoring tab
+      nav.navigate(TABS.LIVE_SCORE as never);
+    } finally {
+      setSubmitting(false);
+    }
   };
-
   // --- UI --------------------------------------------------------------------
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -158,14 +192,18 @@ export default function PreMatchScreen() {
         <View className="rounded-2xl bg-white p-4 shadow-sm">
           <View className="flex-col">
             <Pressable
-              disabled={!coinToss}
+              disabled={!coinToss || submitting}
               onPress={onStartMatch}
               className={`items-center justify-center rounded-xl py-3 ${
                 coinToss ? 'bg-blue-900' : 'bg-slate-300'
               }`}
               accessibilityRole="button"
               accessibilityLabel="Start match">
-              <Text className="text-base font-bold text-white">Start Match</Text>
+              {submitting ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-base font-bold text-white">Start Match</Text>
+              )}
             </Pressable>
 
             <Text className="mt-3 text-center text-xs text-slate-500">
