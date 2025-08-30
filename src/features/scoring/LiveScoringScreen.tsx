@@ -1,5 +1,6 @@
 // src/features/scoring/LiveScoringScreen.tsx
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
+import { UPAModal } from '~/components/Modal';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +24,9 @@ import { getMatchScore } from './selectors/matchScore';
 import { DEV_SEED_LIVE_SCORING } from '~/config/flags';
 
 export default function LiveScoringScreen() {
+  const [finishOpen, setFinishOpen] = useState(false);
+  const shownForMatchId = useRef<string | null>(null);
+
   // read-only state
   const match = useLiveScoringStore((s) => s.match);
   const shots = useLiveScoringStore((s) => s.shots);
@@ -42,6 +46,7 @@ export default function LiveScoringScreen() {
   const nav = useNavigation<any>();
 
   const navToPostMatch = () => {
+    setFinishOpen(false);
     // If LiveScore tab itself hosts a stack:
     // nav.navigate(TABS.LIVE_SCORE as never, { screen: LIVE_SCORE_STACK.POST_MATCH } as never);
 
@@ -77,8 +82,31 @@ export default function LiveScoringScreen() {
 
   const breakerLabel = ms.breakerName ? `Break: ${ms.breakerName}` : 'Break: —';
 
+  const homeWins = match?.racks.filter((r) => r.winnerPlayerId === match.home.id).length ?? 0;
+  const awayWins = match?.racks.filter((r) => r.winnerPlayerId === match.away.id).length ?? 0;
+
+  const raceDone =
+    !!match &&
+    ((match.raceToHome && homeWins >= match.raceToHome) ||
+      (match.raceToAway && awayWins >= match.raceToAway));
+  const winnerSide =
+    !!match && match.raceToHome && homeWins >= match.raceToHome
+      ? 'home'
+      : !!match && match.raceToAway && awayWins >= match.raceToAway
+        ? 'away'
+        : undefined;
+
   // stats for current rack only
   const tally = useMemo(() => computeRackTally(shots as Shot[], rackNumber), [shots, rackNumber]);
+
+  // open exactly once per matchId when raceDone flips to true
+  useEffect(() => {
+    if (!match) return;
+    if (raceDone && shownForMatchId.current !== match.matchId) {
+      setFinishOpen(true);
+      shownForMatchId.current = match.matchId;
+    }
+  }, [raceDone, match]);
 
   // handlers
   const onStartRack = (breakerId: number) => {
@@ -264,7 +292,7 @@ export default function LiveScoringScreen() {
           </TouchableOpacity>
         </View>
       </Card>
-      {race.raceDone && (
+      {/* {race.raceDone && (
         <Card className="mx-5 mt-4">
           <View className="flex-row items-center justify-between">
             <Text className="font-medium text-zinc-700">
@@ -278,7 +306,7 @@ export default function LiveScoringScreen() {
             </TouchableOpacity>
           </View>
         </Card>
-      )}
+      )} */}
 
       {/* History */}
       {match.racks.length > 0 && (
@@ -294,6 +322,30 @@ export default function LiveScoringScreen() {
           ))}
         </Card>
       )}
+      <UPAModal
+        visible={finishOpen}
+        onRequestClose={() => setFinishOpen(false)}
+        title="Race finished"
+        actions={[
+          {
+            label: 'Stay Here',
+            onPress: () => setFinishOpen(false),
+            kind: 'secondary',
+            testID: 'btn-stay',
+          },
+          {
+            label: 'Review Summary',
+            onPress: navToPostMatch,
+            kind: 'primary',
+            testID: 'btn-review',
+          },
+        ]}>
+        {match && (
+          <Text style={{ color: theme.colors.text.primary }}>
+            ✓ Winner: {winnerSide === 'home' ? match.home.name : match.away.name}
+          </Text>
+        )}
+      </UPAModal>
     </ScrollView>
   );
 }
