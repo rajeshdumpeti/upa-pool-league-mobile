@@ -5,7 +5,14 @@
 // -----------------------------------------------------------------------------
 
 import { axiosClient } from './axiosClient';
-import type { MatchGame, CreateMatchGame, CompleteMatchGame, Paged } from './types';
+import type {
+  MatchGame,
+  CreateMatchGame,
+  CompleteMatchGame,
+  Paged,
+  MatchCreateRequest,
+  MatchCreateResponse,
+} from './types';
 
 /** Create a new rack (match_game) inside a match. */
 export async function createMatchGame(input: CreateMatchGame): Promise<MatchGame> {
@@ -25,5 +32,10 @@ export async function completeMatchGame(
 /** Optional utility: list games for a match (useful for history). */
 export async function listMatchGames(matchId: number): Promise<Paged<MatchGame>> {
   const { data } = await axiosClient.get<Paged<MatchGame>>(`/matches/${matchId}/games`);
+  return data;
+}
+
+export async function createMatch(body: MatchCreateRequest): Promise<MatchCreateResponse> {
+  const { data } = await axiosClient.post<MatchCreateResponse>('/matches', body);
   return data;
 }

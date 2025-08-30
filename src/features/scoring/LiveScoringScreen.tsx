@@ -64,15 +64,11 @@ export default function LiveScoringScreen() {
   }, [match, hydrateMatch, startRack]);
 
   const rackNumber = rackMeta?.rackNumber ?? 1;
+  const serverMatchId = useLiveScoringStore((s) => s.serverMatchId);
 
   const ms = useLiveScoringStore(useShallow((state) => getMatchScore(state)));
 
   const breakerLabel = ms.breakerName ? `Break: ${ms.breakerName}` : 'Break: —';
-
-  const scoreText = `${ms.homeName ?? 'Home'} ${ms.homeWins}/${ms.raceToHome ?? '—'} — ${ms.awayWins}/${ms.raceToAway ?? '—'} ${ms.awayName ?? 'Away'}`;
-
-  const homeProgress = ms.raceToHome ? Math.min(1, ms.homeWins / ms.raceToHome) : 0;
-  const awayProgress = ms.raceToAway ? Math.min(1, ms.awayWins / ms.raceToAway) : 0;
 
   // stats for current rack only
   const tally = useMemo(() => computeRackTally(shots as Shot[], rackNumber), [shots, rackNumber]);
@@ -109,6 +105,13 @@ export default function LiveScoringScreen() {
         raceDone={ms.raceDone}
         winnerSide={ms.winnerSide}
       />
+      {__DEV__ && (
+        <View className="mx-5 mt-1">
+          <Text className="text-xs text-zinc-500">
+            serverMatchId: {String(serverMatchId ?? '—')}
+          </Text>
+        </View>
+      )}
 
       {race.isOver && (
         <RaceBanner

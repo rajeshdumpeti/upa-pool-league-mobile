@@ -90,3 +90,31 @@ export interface Paged<T> {
   data: T[];
   next_cursor?: string | null;
 }
+
+// ---- PreMatch create (request/response) ----
+
+export type MatchCreateRequest = {
+  division_id?: number | null;
+  date?: string | null; // ISO; server may override
+  format: GameFormat;
+  home_team: { id: number; name?: string | null };
+  away_team: { id: number; name?: string | null };
+  home_lineup: {
+    order: number;
+    player: { id: number; name?: string | null; skill?: number | null };
+  }[];
+  away_lineup: {
+    order: number;
+    player: { id: number; name?: string | null; skill?: number | null };
+  }[];
+  coin_toss_winner_team_id?: number | null;
+  notes?: string | null;
+};
+
+export type MatchCreateResponse = {
+  id: number; // serverMatchId
+  status: 'created' | 'accepted';
+  format: GameFormat;
+  home_team_id: number;
+  away_team_id: number;
+};
