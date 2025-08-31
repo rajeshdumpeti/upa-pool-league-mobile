@@ -139,6 +139,7 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
       return;
     }
 
+    const rackShots = get().shots.filter((s) => s.rackNumber === meta.rackNumber);
     const summary = computeFromShots(get().shots, meta.rackNumber);
 
     const rackEvent: LiveMatch['racks'][number] = {
@@ -151,6 +152,7 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
       timeouts: summary.timeouts,
       notes,
       createdAt: new Date().toISOString(),
+      shots: rackShots,
     };
 
     const before = m;

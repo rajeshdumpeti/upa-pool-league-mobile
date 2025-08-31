@@ -1,5 +1,7 @@
 // Core entities referenced during live scoring
 
+import { Shot } from '~/stores/liveScoringStore';
+
 export type GameFormat = '8-ball' | '9-ball' | '10-ball';
 
 export interface PlayerRef {
@@ -18,6 +20,7 @@ export interface RackEvent {
   timeouts?: number; // optional: timeouts used in rack (team/player)
   notes?: string; // e.g., "break & run", "8 on break"
   createdAt: string; // ISO timestamp (client time)
+  shots?: Shot[]; // optional: shots recorded in this rack
 }
 
 export interface LiveMatch {

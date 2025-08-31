@@ -22,7 +22,8 @@ import ScoreStrip from './components/ScoreStrip';
 import { useShallow } from 'zustand/react/shallow';
 import { getMatchScore } from './selectors/matchScore';
 import { DEV_SEED_LIVE_SCORING } from '~/config/flags';
-
+import ShotPad from './components/ShotPad';
+import ShotHistory from './components/ShotHistory';
 export default function LiveScoringScreen() {
   const [finishOpen, setFinishOpen] = useState(false);
   const shownForMatchId = useRef<string | null>(null);
@@ -147,7 +148,6 @@ export default function LiveScoringScreen() {
           </Text>
         </View>
       )}
-
       {/* Header */}
       <View className="px-5 pt-4">
         <Text className="text-lg font-semibold text-zinc-900">{match.format.toUpperCase()}</Text>
@@ -155,7 +155,6 @@ export default function LiveScoringScreen() {
           Race {match.home.name} to {match.raceToHome} vs {match.away.name} to {match.raceToAway}
         </Text>
       </View>
-
       {/* Current rack / breaker */}
       <Card className="mx-5 mt-4">
         <Title>Rack {rackNumber}</Title>
@@ -198,53 +197,22 @@ export default function LiveScoringScreen() {
           ))}
         </View>
       </Card>
-
       {/* Shot pads */}
       <Card className="mx-5 mt-4">
         <Title>Shots</Title>
         <Text className="mt-1 text-zinc-500">Tap to record for a player</Text>
 
-        {/* Home row */}
+        {/* Home */}
         <View className="mt-3">
-          <Text className="mb-2 font-medium text-zinc-700">{match.home.name}</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {SHOT_KEYS.map((s) => (
-              <TouchableOpacity
-                key={`h-${s}`}
-                onPress={() => onAddShot(match.home.id, s)}
-                className="h-10 w-12 items-center justify-center rounded-xl"
-                disabled={inputsDisabled}
-                style={{
-                  opacity: inputsDisabled ? 0.4 : 1,
-                  backgroundColor: theme.colors.surface.background,
-                }}>
-                <Text className="font-semibold text-zinc-700">{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <ShotPad playerName={match.home.name} playerId={match.home.id} onShot={onAddShot} />
         </View>
 
-        {/* Away row */}
+        {/* Away */}
         <View className="mt-4">
-          <Text className="mb-2 font-medium text-zinc-700">{match.away.name}</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {SHOT_KEYS.map((s) => (
-              <TouchableOpacity
-                key={`a-${s}`}
-                onPress={() => onAddShot(match.away.id, s)}
-                className="h-10 w-12 items-center justify-center rounded-xl"
-                disabled={inputsDisabled}
-                style={{
-                  opacity: inputsDisabled ? 0.4 : 1,
-                  backgroundColor: theme.colors.surface.background,
-                }}>
-                <Text className="font-semibold text-zinc-700">{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <ShotPad playerName={match.away.name} playerId={match.away.id} onShot={onAddShot} />
         </View>
 
-        {/* Controls */}
+        {/* Controls (unchanged) */}
         <View className="mt-5 flex-row gap-8">
           <TouchableOpacity onPress={removeLastShot} className="flex-row items-center gap-2">
             <Ionicons name="send-outline" size={18} color={theme.colors.text.muted} />
@@ -257,7 +225,6 @@ export default function LiveScoringScreen() {
           </TouchableOpacity>
         </View>
       </Card>
-
       {/* Tally + complete */}
       <Card className="mx-5 mt-4">
         <Title>Rack Summary</Title>
@@ -307,19 +274,16 @@ export default function LiveScoringScreen() {
           </View>
         </Card>
       )} */}
-
       {/* History */}
       {match.racks.length > 0 && (
         <Card className="mx-5 mb-6 mt-4">
           <Title>History</Title>
-          {match.racks.map((r) => (
-            <View key={r.id} className="mt-2 flex-row justify-between">
-              <Text className="text-zinc-600">Rack {r.rackNumber}</Text>
-              <Text className="text-zinc-600">
-                Winner: {r.winnerPlayerId === match.home.id ? match.home.name : match.away.name}
-              </Text>
-            </View>
-          ))}
+          {match.racks.length > 0 && (
+            <Card className="mx-5 mb-6 mt-4">
+              <Title>History</Title>
+              <ShotHistory match={match} shots={shots} />
+            </Card>
+          )}
         </Card>
       )}
       <UPAModal
@@ -340,10 +304,52 @@ export default function LiveScoringScreen() {
             testID: 'btn-review',
           },
         ]}>
-        {match && (
-          <Text style={{ color: theme.colors.text.primary }}>
-            ✓ Winner: {winnerSide === 'home' ? match.home.name : match.away.name}
-          </Text>
+        {/* History (existing racks) */}
+        {match.racks.length > 0 && (
+          <Card className="mx-5 mb-6 mt-4">
+            <Title>History</Title>
+            {match.racks.map((r) => {
+              const all = r.shots ?? []; // may be undefined for older racks
+              const homeLine = all
+                .filter((s) => s.playerId === match.home.id)
+                .sort((a, b) => a.ts - b.ts)
+                .map((s) => s.symbol)
+                .join(' ');
+              const awayLine = all
+                .filter((s) => s.playerId === match.away.id)
+                .sort((a, b) => a.ts - b.ts)
+                .map((s) => s.symbol)
+                .join(' ');
+
+              return (
+                <View key={r.id} className="mt-3 rounded-xl border border-zinc-200 p-12 py-3">
+                  <View className="mb-1 flex-row justify-between">
+                    <Text className="font-medium text-zinc-800">Rack {r.rackNumber}</Text>
+                    <Text className="text-zinc-600">
+                      Winner:{' '}
+                      {r.winnerPlayerId === match.home.id ? match.home.name : match.away.name}
+                    </Text>
+                  </View>
+
+                  {/* Shots (compact) */}
+                  {all.length > 0 ? (
+                    <View className="mt-1">
+                      <Text className="text-xs text-zinc-500">
+                        {match.home.name}: <Text className="text-zinc-700">{homeLine}</Text>
+                      </Text>
+                      <Text className="mt-0.5 text-xs text-zinc-500">
+                        {match.away.name}: <Text className="text-zinc-700">{awayLine}</Text>
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text className="mt-1 text-xs text-zinc-400">
+                      No shots recorded for this rack.
+                    </Text>
+                  )}
+                </View>
+              );
+            })}
+          </Card>
         )}
       </UPAModal>
     </ScrollView>
