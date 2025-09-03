@@ -14,6 +14,7 @@ export const axiosClient = axios.create({
 // Add common headers if needed later (auth, trace-id, etc.)
 axiosClient.interceptors.request.use((config) => {
   // example: config.headers['X-App-Channel'] = ENV.channel;
+
   return config;
 });
 
@@ -22,10 +23,25 @@ axiosClient.interceptors.response.use(
   (res) => res,
   (error) => {
     const status = error?.response?.status;
-    const backendMsg = error?.response?.data?.detail || error?.response?.data?.message;
-    const message =
-      backendMsg ||
-      (status === 0 ? 'Network error' : status ? `Request failed (${status})` : 'Unexpected error');
+
+    const detail = error?.response?.data?.detail;
+    let message: string | undefined;
+
+    if (Array.isArray(detail) && detail.length > 0) {
+      // FastAPI/Pydantic v2 ValidationError format
+      const first = detail[0];
+      message = `Validation error at ${first?.loc?.join?.('.') ?? 'unknown'}: ${first?.msg ?? 'invalid input'}`;
+    } else {
+      const backendMsg = error?.response?.data?.detail || error?.response?.data?.message;
+      message =
+        typeof backendMsg === 'string'
+          ? backendMsg
+          : status === 0
+            ? 'Network error'
+            : status
+              ? `Request failed (${status})`
+              : 'Unexpected error';
+    }
 
     // Keep the original error but attach a friendly message
     const normalized = new Error(message);

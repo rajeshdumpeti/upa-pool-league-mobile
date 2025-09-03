@@ -5,8 +5,7 @@ import { REMOTE_SCORING_ENABLED } from '~/config/flags';
 import { createMatchGame, completeMatchGame } from '~/api/matches';
 import { createScoreEventsBatch } from '~/api/events';
 import type { CreateMatchGame, CompleteMatchGame } from '~/api/types';
-import { splitQueueByGame, keepOnly } from './scoreQueue';
-
+import { enqueue, splitQueueByGame, keepOnly, toPendingEvent } from './scoreQueue';
 let unreg: (() => void) | null = null;
 
 export function bootstrapScoringRemoteSync() {
@@ -41,14 +40,13 @@ export function bootstrapScoringRemoteSync() {
       }
     },
 
-    onShotAdded({ match, rackNumber, shot }) {
-      // C2.3 logic left as-is (enqueue when we have serverMatchGameId).
+    onShotAdded({ rackNumber, shot }) {
       const gameId = useLiveScoringStore.getState().serverMatchGameId;
       if (!gameId || typeof gameId !== 'number') {
         console.log('[scoreQueue] skip enqueue (no serverMatchGameId yet)');
         return;
       }
-      // enqueue(...) is already wired in C2.3
+      enqueue(toPendingEvent(gameId, rackNumber, shot));
     },
 
     async onRackCompleted({ match, rackNumber, winnerId, summary }) {
@@ -68,7 +66,9 @@ export function bootstrapScoringRemoteSync() {
             gameId,
             count: current.length,
           });
-          await createScoreEventsBatch(gameId, { events: current });
+          await createScoreEventsBatch(gameId, {
+            events: current.map(({ _local_id, _rack_number, ...apiShape }) => apiShape),
+          });
           console.log('[remoteSync] batch OK');
         } else {
           console.log('[remoteSync] no events to flush for game', gameId);

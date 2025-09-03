@@ -7,7 +7,7 @@
 // -----------------------------------------------------------------------------
 
 import { getJSON, setJSON, STORE_KEYS } from '~/lib/storage';
-import type { CreateScoreEvent, ScoreEventType } from '~/api/types';
+import type { CreateScoreEvent } from '~/api/types';
 import type { Shot } from '~/stores/liveScoringStore';
 
 /** Queue item that mirrors the API request shape closely */
@@ -40,44 +40,44 @@ export function clearQueue() {
 }
 
 /** Map a Shot (UI symbol) to an API ScoreEventType + minimal payload */
-export function mapShotToEvent(shot: Shot): { type: ScoreEventType; payload: Record<string, any> } {
+function mapShotToBackend(shot: Shot): {
+  type: 'X' | 'O' | 'M' | 'S' | 'F' | 'V' | 'I' | 'T' | '8';
+  payload: Record<string, any> | undefined;
+} {
+  // Use the symbol directly; attach tiny payloads only when useful
   switch (shot.symbol) {
     case 'X':
     case 'O':
     case 'M':
-      // Normalize to one 'SHOT' event with result detail
-      return { type: 'SHOT', payload: { result: shot.symbol } };
     case 'S':
-      return { type: 'SAFETY', payload: {} };
+    case 'T':
+    case '8':
+      return { type: shot.symbol, payload: undefined };
     case 'F':
     case 'V':
     case 'I':
-      return { type: 'FOUL', payload: { code: shot.symbol } };
-    case 'T':
-      return { type: 'TIMEOUT', payload: {} };
-    case '8':
-      return { type: 'EIGHT', payload: {} };
+      // Keep a code in payload for future analytics; backend allows any JSON
+      return { type: shot.symbol, payload: { code: shot.symbol } };
     default:
-      // fallback as NOTE to avoid dropping anything unusual
-      return { type: 'NOTE', payload: { symbol: shot.symbol } };
+      // Shouldn't happen; fall back to NOTE-like payload
+      return { type: 'M', payload: { note: String(shot.symbol) } }; // safe fallback
   }
 }
 
-/** Build a queue item from a shot and known game id */
-export function toPendingEvent(gameId: number, rackNumber: number, shot: Shot): PendingScoreEvent {
-  const { type, payload } = mapShotToEvent(shot);
+/** Build a queue item from a shot and known game id — P0 backend event shape */
+export function toPendingEvent(gameId: number, rackNumber: number, shot: Shot) {
+  const { type, payload } = mapShotToBackend(shot);
   return {
     _local_id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     _rack_number: rackNumber,
     match_game_id: gameId,
     ts: new Date(shot.ts).toISOString(),
     actor_player_id: shot.playerId,
-    type,
+    type, // <-- raw symbol as required by backend
     payload_json: payload,
     rule_ref: null,
   };
 }
-
 /** Split queue into (current game's items) and (others) */
 export function splitQueueByGame(gameId: number) {
   const all = readQueue();

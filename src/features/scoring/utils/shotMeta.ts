@@ -22,15 +22,15 @@ export const SHOTS: ShotMeta[] = [
   { symbol: 'O', label: 'Open', category: 'offense' },
   { symbol: 'M', label: 'Miss', category: 'offense' },
 
-  { symbol: 'S', label: 'Safe', category: 'safety', confirm: true },
+  { symbol: 'S', label: 'Safe', category: 'safety' },
 
-  { symbol: 'F', label: 'Foul', category: 'foul', confirm: true },
-  { symbol: 'V', label: 'Violation', category: 'foul', confirm: true },
-  { symbol: 'I', label: 'Intentional', category: 'foul', confirm: true },
+  { symbol: 'F', label: 'Foul', category: 'foul' },
+  { symbol: 'V', label: 'Violation', category: 'foul' },
+  { symbol: 'I', label: 'Intentional', category: 'foul' },
 
-  { symbol: 'T', label: 'Timeout', category: 'timeout', confirm: true },
+  { symbol: 'T', label: 'Timeout', category: 'timeout' },
 
-  { symbol: '8', label: '8-ball', category: 'special', confirm: true },
+  { symbol: '8', label: '8-ball', category: 'special' },
 ];
 
 /** Groups for layout order on the pad */
@@ -46,7 +46,8 @@ export const PAD_GROUPS: ShotCategory[] = [
 export const byCategory = (cat: ShotCategory) => SHOTS.filter((s) => s.category === cat);
 
 export function needsConfirm(sym: ShotSymbol) {
-  return SHOTS.find((s) => s.symbol === sym)?.confirm === true;
+  // offense should NOT confirm; these DO confirm:
+  return sym === 'F' || sym === 'V' || sym === 'I' || sym === 'T' || sym === '8';
 }
 
 export function labelFor(sym: ShotSymbol) {

@@ -10,7 +10,7 @@ import { axiosClient } from './axiosClient';
 import type { ScoreEvent, CreateScoreEvent, CreateScoreEventsBatch, Paged } from './types';
 
 // Internal: P0 batch ACK from backend
-type ScoreEventsBatchAck = { accepted: number; game_id: number };
+// type ScoreEventsBatchAck = { accepted: number; game_id: number };
 
 /**
  * Create a single score event (adapter for P0).
@@ -18,12 +18,12 @@ type ScoreEventsBatchAck = { accepted: number; game_id: number };
  */
 export async function createScoreEvent(input: CreateScoreEvent): Promise<ScoreEvent> {
   const { match_game_id, ...rest } = input as any;
-  const body = { events: [{ ...rest }] };
+  // const body = { events: [{ ...rest }] };
 
-  const { data } = await axiosClient.post<ScoreEventsBatchAck>(
-    `/match-games/${match_game_id}/score-events:batch`,
-    body
-  );
+  // const { data } = await axiosClient.post<ScoreEventsBatchAck>(
+  //   `/match-games/${match_game_id}/score-events:batch`,
+  //   body
+  // );
 
   // P0 backend doesn’t return the created event; fabricate a minimal echo so callers don’t break.
   // When backend adds real single-create, replace this with server response.
@@ -42,11 +42,28 @@ export async function createScoreEventsBatch(
   gameId: number,
   batch: CreateScoreEventsBatch
 ): Promise<{ inserted: number }> {
-  const { data } = await axiosClient.post<ScoreEventsBatchAck>(
-    `/match-games/${gameId}/score-events:batch`,
-    batch
+  // Backend expects events WITHOUT match_game_id (game id is in the URL)
+  // Also strip undefined values so Pydantic doesn't reject.
+  const clean = (obj: Record<string, any>) =>
+    Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+
+  const events = batch.events.map(({ match_game_id, payload_json, ...rest }) =>
+    clean({ ...rest, payload_json: payload_json ? clean(payload_json) : undefined })
   );
-  return { inserted: data.accepted };
+
+  try {
+    const { data } = await axiosClient.post<{ accepted: number; game_id: number }>(
+      `/match-games/${gameId}/score-events:batch`,
+      { events }
+    );
+    return { inserted: data.accepted };
+  } catch (err: any) {
+    // richer diagnostics so we can see 422 details
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+    console.warn('[events] batch failed', { status, data });
+    throw err;
+  }
 }
 
 /**
