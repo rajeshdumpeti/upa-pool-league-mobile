@@ -7,7 +7,7 @@
 // -----------------------------------------------------------------------------
 
 import { getJSON, setJSON, STORE_KEYS } from '~/lib/storage';
-import type { CreateScoreEvent, ScoreEventType } from '~/api/types';
+import type { CreateScoreEvent } from '~/api/types';
 import type { Shot } from '~/stores/liveScoringStore';
 
 /** Queue item that mirrors the API request shape closely */
