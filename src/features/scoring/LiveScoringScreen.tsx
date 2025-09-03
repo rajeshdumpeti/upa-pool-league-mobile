@@ -16,14 +16,14 @@ import { useLiveScoringStore } from '~/stores/liveScoringStore';
 import type { Shot, ShotSymbol } from '~/stores/liveScoringStore';
 import type { LiveMatch } from './types';
 
-import { computeRackTally, SHOT_KEYS, BREAK_KEYS } from './utils/scoring';
+import { computeRackTally, BREAK_KEYS } from './utils/scoring';
 import ScoreStrip from './components/ScoreStrip';
 
 import { useShallow } from 'zustand/react/shallow';
 import { getMatchScore } from './selectors/matchScore';
 import { DEV_SEED_LIVE_SCORING } from '~/config/flags';
 import ShotPad from './components/ShotPad';
-import ShotHistory from './components/ShotHistory';
+import RackHistoryItem from './components/RackHistory';
 export default function LiveScoringScreen() {
   const [finishOpen, setFinishOpen] = useState(false);
   const shownForMatchId = useRef<string | null>(null);
@@ -203,13 +203,23 @@ export default function LiveScoringScreen() {
         <Text className="mt-1 text-zinc-500">Tap to record for a player</Text>
 
         {/* Home */}
-        <View className="mt-3">
-          <ShotPad playerName={match.home.name} playerId={match.home.id} onShot={onAddShot} />
+        <View className="mt-3" pointerEvents="box-none">
+          <ShotPad
+            className="relative"
+            playerName={match.home.name}
+            playerId={match.home.id}
+            onShot={onAddShot}
+          />
         </View>
 
         {/* Away */}
-        <View className="mt-4">
-          <ShotPad playerName={match.away.name} playerId={match.away.id} onShot={onAddShot} />
+        <View className="mt-4" pointerEvents="box-none">
+          <ShotPad
+            className="relative"
+            playerName={match.away.name}
+            playerId={match.away.id}
+            onShot={onAddShot}
+          />
         </View>
 
         {/* Controls (unchanged) */}
@@ -259,31 +269,20 @@ export default function LiveScoringScreen() {
           </TouchableOpacity>
         </View>
       </Card>
-      {/* {race.raceDone && (
-        <Card className="mx-5 mt-4">
-          <View className="flex-row items-center justify-between">
-            <Text className="font-medium text-zinc-700">
-              ✓ Race won — {race.winnerSide === 'home' ? match.home.name : match.away.name}
-            </Text>
-            <TouchableOpacity
-              onPress={navToPostMatch}
-              className="rounded-xl px-3 py-2"
-              style={{ backgroundColor: theme.colors.brand.accent }}>
-              <Text className="font-semibold text-white">Finish Match</Text>
-            </TouchableOpacity>
-          </View>
-        </Card>
-      )} */}
+
       {/* History */}
       {match.racks.length > 0 && (
         <Card className="mx-5 mb-6 mt-4">
           <Title>History</Title>
-          {match.racks.length > 0 && (
-            <Card className="mx-5 mb-6 mt-4">
-              <Title>History</Title>
-              <ShotHistory match={match} shots={shots} />
-            </Card>
-          )}
+          {match.racks.map((r, idx) => (
+            <RackHistoryItem
+              key={r.id}
+              rack={r}
+              home={match.home}
+              away={match.away}
+              defaultOpen={idx === match.racks.length - 1} // only newest rack opens
+            />
+          ))}
         </Card>
       )}
       <UPAModal
@@ -304,52 +303,10 @@ export default function LiveScoringScreen() {
             testID: 'btn-review',
           },
         ]}>
-        {/* History (existing racks) */}
-        {match.racks.length > 0 && (
-          <Card className="mx-5 mb-6 mt-4">
-            <Title>History</Title>
-            {match.racks.map((r) => {
-              const all = r.shots ?? []; // may be undefined for older racks
-              const homeLine = all
-                .filter((s) => s.playerId === match.home.id)
-                .sort((a, b) => a.ts - b.ts)
-                .map((s) => s.symbol)
-                .join(' ');
-              const awayLine = all
-                .filter((s) => s.playerId === match.away.id)
-                .sort((a, b) => a.ts - b.ts)
-                .map((s) => s.symbol)
-                .join(' ');
-
-              return (
-                <View key={r.id} className="mt-3 rounded-xl border border-zinc-200 p-12 py-3">
-                  <View className="mb-1 flex-row justify-between">
-                    <Text className="font-medium text-zinc-800">Rack {r.rackNumber}</Text>
-                    <Text className="text-zinc-600">
-                      Winner:{' '}
-                      {r.winnerPlayerId === match.home.id ? match.home.name : match.away.name}
-                    </Text>
-                  </View>
-
-                  {/* Shots (compact) */}
-                  {all.length > 0 ? (
-                    <View className="mt-1">
-                      <Text className="text-xs text-zinc-500">
-                        {match.home.name}: <Text className="text-zinc-700">{homeLine}</Text>
-                      </Text>
-                      <Text className="mt-0.5 text-xs text-zinc-500">
-                        {match.away.name}: <Text className="text-zinc-700">{awayLine}</Text>
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text className="mt-1 text-xs text-zinc-400">
-                      No shots recorded for this rack.
-                    </Text>
-                  )}
-                </View>
-              );
-            })}
-          </Card>
+        {match && (
+          <Text style={{ color: theme.colors.text.primary }}>
+            ✓ Winner: {winnerSide === 'home' ? match.home.name : match.away.name}
+          </Text>
         )}
       </UPAModal>
     </ScrollView>

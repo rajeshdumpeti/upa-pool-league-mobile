@@ -52,14 +52,7 @@ export interface CompleteMatchGame {
 }
 
 /** Table: score_events ------------------------------------------------------ */
-export type ScoreEventType =
-  | 'SHOT' // X/O/M
-  | 'SAFETY' // S
-  | 'FOUL' // F/V/I
-  | 'TIMEOUT' // T
-  | 'BREAK' // Y/N/F/8
-  | 'NOTE' // free-form note
-  | 'EIGHT'; // legal 8 (for 8-ball)
+export type ScoreEventType = 'X' | 'O' | 'M' | 'S' | 'F' | 'V' | 'I' | 'T' | '8';
 
 export interface ScoreEvent extends ResourceId {
   match_game_id: number;

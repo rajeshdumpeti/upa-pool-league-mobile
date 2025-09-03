@@ -42,11 +42,28 @@ export async function createScoreEventsBatch(
   gameId: number,
   batch: CreateScoreEventsBatch
 ): Promise<{ inserted: number }> {
-  const { data } = await axiosClient.post<ScoreEventsBatchAck>(
-    `/match-games/${gameId}/score-events:batch`,
-    batch
+  // Backend expects events WITHOUT match_game_id (game id is in the URL)
+  // Also strip undefined values so Pydantic doesn't reject.
+  const clean = (obj: Record<string, any>) =>
+    Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+
+  const events = batch.events.map(({ match_game_id, payload_json, ...rest }) =>
+    clean({ ...rest, payload_json: payload_json ? clean(payload_json) : undefined })
   );
-  return { inserted: data.accepted };
+
+  try {
+    const { data } = await axiosClient.post<{ accepted: number; game_id: number }>(
+      `/match-games/${gameId}/score-events:batch`,
+      { events }
+    );
+    return { inserted: data.accepted };
+  } catch (err: any) {
+    // richer diagnostics so we can see 422 details
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+    console.warn('[events] batch failed', { status, data });
+    throw err;
+  }
 }
 
 /**

@@ -14,18 +14,25 @@ import type {
   MatchCreateResponse,
 } from './types';
 
-/** Create a new rack (match_game) inside a match. */
-export async function createMatchGame(input: CreateMatchGame): Promise<MatchGame> {
-  const { data } = await axiosClient.post<MatchGame>(`/matches/${input.match_id}/games`, input);
+// 👇 add lightweight types that match your backend stubs
+export type MatchGameCreated = { id: number; match_id: number; game_no: number };
+export type MatchGamePatched = { id: number; status: 'completed' };
+
+/** Create a new rack (match_game) — matches FastAPI: POST /match-games */
+export async function createMatchGame(input: CreateMatchGame): Promise<MatchGameCreated> {
+  const { data } = await axiosClient.post<MatchGameCreated>(`/match-games`, input);
   return data;
 }
 
-/** Patch/complete a rack (winner, tallies, notes). */
+/** Complete/patch a rack — matches FastAPI: PATCH /match-games/{id}/complete */
 export async function completeMatchGame(
   gameId: number,
   patch: CompleteMatchGame
-): Promise<MatchGame> {
-  const { data } = await axiosClient.patch<MatchGame>(`/games/${gameId}`, patch);
+): Promise<MatchGamePatched> {
+  const { data } = await axiosClient.patch<MatchGamePatched>(
+    `/match-games/${gameId}/complete`,
+    patch
+  );
   return data;
 }
 
