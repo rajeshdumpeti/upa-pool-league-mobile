@@ -6,6 +6,7 @@ import { createMatchGame, completeMatchGame } from '~/api/matches';
 import { createScoreEventsBatch } from '~/api/events';
 import type { CreateMatchGame, CompleteMatchGame } from '~/api/types';
 import { enqueue, splitQueueByGame, keepOnly, toPendingEvent } from './scoreQueue';
+import { toast } from '~/lib/notify';
 let unreg: (() => void) | null = null;
 
 export function bootstrapScoringRemoteSync() {
@@ -58,46 +59,56 @@ export function bootstrapScoringRemoteSync() {
         return;
       }
 
-      // 1) Batch send queued events for THIS game
-      const { current, others } = splitQueueByGame(gameId);
+      // NEW: show UI as busy while we flush + patch
+      useLiveScoringStore.getState().setIsSyncingGame(true);
       try {
-        if (current.length > 0) {
-          console.log('[remoteSync] flushing score_events batch', {
-            gameId,
-            count: current.length,
-          });
-          await createScoreEventsBatch(gameId, {
-            events: current.map(({ _local_id, _rack_number, ...apiShape }) => apiShape),
-          });
-          console.log('[remoteSync] batch OK');
-        } else {
-          console.log('[remoteSync] no events to flush for game', gameId);
+        // 1) Batch send queued events for THIS game
+        const { current, others } = splitQueueByGame(gameId);
+        try {
+          if (current.length > 0) {
+            console.log('[remoteSync] flushing score_events batch', {
+              gameId,
+              count: current.length,
+            });
+            await createScoreEventsBatch(gameId, {
+              events: current.map(({ _local_id, _rack_number, ...apiShape }) => apiShape),
+            });
+            console.log('[remoteSync] batch OK');
+          } else {
+            console.log('[remoteSync] no events to flush for game', gameId);
+          }
+        } catch (err: any) {
+          console.warn('[remoteSync] batch failed — keeping queue for retry', err);
+          toast('Could not send events. Will retry next rack.');
+          return; // IMPORTANT: don't patch if batch failed
         }
-      } catch (err) {
-        console.warn('[remoteSync] batch failed — keeping queue for retry', err);
-        return; // do not PATCH if we couldn't persist events; try again next time
-      }
 
-      // 2) Patch/complete the match_game with winner + summary
-      try {
-        const patch: CompleteMatchGame = {
-          winner_player_id: winnerId,
-          innings: summary.innings,
-          defensive_shots: summary.defensiveShots,
-          timeouts: summary.timeouts,
-          fouls: summary.fouls,
-          ended_at: new Date().toISOString(),
-        };
-        console.log('[remoteSync] patch game', { gameId, patch });
-        await completeMatchGame(gameId, patch);
-        console.log('[remoteSync] patch OK');
+        // 2) Patch/complete the match_game with winner + summary
+        try {
+          const bm = useLiveScoringStore.getState().rackMeta?.breakMark; // NEW
+          const patch: CompleteMatchGame = {
+            winner_player_id: winnerId,
+            innings: summary.innings,
+            defensive_shots: summary.defensiveShots,
+            timeouts: summary.timeouts,
+            fouls: summary.fouls,
+            break_mark: bm, // ← NEW: include break mark if present
+            ended_at: new Date().toISOString(),
+          };
+          console.log('[remoteSync] patch game', { gameId, patch });
+          await completeMatchGame(gameId, patch);
+          console.log('[remoteSync] patch OK');
 
-        // 3) Only now do we clear the flushed items for this game + reset gameId
-        keepOnly(others);
-        useLiveScoringStore.getState().setServerMatchGameId(null);
-      } catch (err) {
-        console.warn('[remoteSync] patch failed — leaving queue for retry', err);
-        // queue remains; we’ll retry next opportunity
+          // 3) Clear flushed items + reset gameId
+          keepOnly(others);
+          useLiveScoringStore.getState().setServerMatchGameId(null);
+          toast('Rack saved ✓');
+        } catch (err: any) {
+          console.warn('[remoteSync] patch failed — leaving queue for retry', err);
+          toast('Could not finalize rack. Will retry.');
+        }
+      } finally {
+        useLiveScoringStore.getState().setIsSyncingGame(false); // ALWAYS clear busy flag
       }
     },
   });

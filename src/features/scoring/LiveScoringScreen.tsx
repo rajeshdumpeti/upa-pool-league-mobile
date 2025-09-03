@@ -21,9 +21,10 @@ import ScoreStrip from './components/ScoreStrip';
 
 import { useShallow } from 'zustand/react/shallow';
 import { getMatchScore } from './selectors/matchScore';
-import { DEV_SEED_LIVE_SCORING } from '~/config/flags';
+import { DEV_SEED_LIVE_SCORING, REQUIRE_BREAK_MARK_TO_FINISH } from '~/config/flags';
 import ShotPad from './components/ShotPad';
 import RackHistoryItem from './components/RackHistory';
+import { devFlushPendingForCurrentGame, devPendingCountForCurrentGame } from './effects/devTools';
 export default function LiveScoringScreen() {
   const [finishOpen, setFinishOpen] = useState(false);
   const shownForMatchId = useRef<string | null>(null);
@@ -32,6 +33,7 @@ export default function LiveScoringScreen() {
   const match = useLiveScoringStore((s) => s.match);
   const shots = useLiveScoringStore((s) => s.shots);
   const rackMeta = useLiveScoringStore((s) => s.rackMeta);
+  const isSyncing = useLiveScoringStore((s) => !!s.isSyncingGame); // NEW
 
   // actions
   const hydrateMatch = useLiveScoringStore((s) => s.hydrateMatch);
@@ -42,8 +44,14 @@ export default function LiveScoringScreen() {
   const completeRack = useLiveScoringStore((s) => s.completeRack);
   const resetRack = useLiveScoringStore((s) => s.resetRack);
 
+  const breakMark = rackMeta?.breakMark;
+  const needsBreakMark = REQUIRE_BREAK_MARK_TO_FINISH && !breakMark;
+
   const race = getRaceState(useLiveScoringStore.getState());
-  const inputsDisabled = race.raceDone;
+  const inputsDisabled = race.raceDone || isSyncing; // NEW: disable inputs while syncing
+  const completeDisabled = needsBreakMark || inputsDisabled; // NEW: also disable if break mark needed
+  const completeHint = needsBreakMark ? 'Set break mark to finish' : undefined;
+
   const nav = useNavigation<any>();
 
   const navToPostMatch = () => {
@@ -142,10 +150,16 @@ export default function LiveScoringScreen() {
         winnerSide={ms.winnerSide}
       />
       {__DEV__ && (
-        <View className="mx-5 mt-1">
+        <View className="mx-5 mt-1 flex-row items-center justify-between">
           <Text className="text-xs text-zinc-500">
-            serverMatchId: {String(serverMatchId ?? '—')}
+            pending: {devPendingCountForCurrentGame()} | syncing: {String(isSyncing)}
           </Text>
+          <TouchableOpacity
+            onPress={() => devFlushPendingForCurrentGame()}
+            className="rounded-lg px-2 py-1"
+            style={{ backgroundColor: '#e2e8f0' }}>
+            <Text className="text-xs font-semibold text-zinc-700">Flush pending</Text>
+          </TouchableOpacity>
         </View>
       )}
       {/* Header */}
@@ -249,23 +263,27 @@ export default function LiveScoringScreen() {
         <View className="mt-4 flex-row gap-3">
           <TouchableOpacity
             className="h-12 flex-1 items-center justify-center rounded-2xl"
-            disabled={inputsDisabled}
+            disabled={completeDisabled}
             style={{
-              backgroundColor: inputsDisabled ? '#cbd5e1' : theme.colors.brand.accent,
-              opacity: inputsDisabled ? 0.7 : 1,
+              backgroundColor: completeDisabled ? '#cbd5e1' : theme.colors.brand.accent,
+              opacity: completeDisabled ? 0.7 : 1,
             }}
             onPress={() => onCompleteRack(match.home.id)}>
-            <Text className="font-semibold text-white">Rack to {match.home.name}</Text>
+            <Text className="font-semibold text-white">
+              {completeHint ? completeHint : `Rack to ${match.home.name}`}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="h-12 flex-1 items-center justify-center rounded-2xl"
-            disabled={inputsDisabled}
+            disabled={completeDisabled}
             style={{
-              backgroundColor: inputsDisabled ? '#cbd5e1' : theme.colors.brand.accent,
-              opacity: inputsDisabled ? 0.7 : 1,
+              backgroundColor: completeDisabled ? '#cbd5e1' : theme.colors.brand.accent,
+              opacity: completeDisabled ? 0.7 : 1,
             }}
             onPress={() => onCompleteRack(match.away.id)}>
-            <Text className="font-semibold text-white">Rack to {match.away.name}</Text>
+            <Text className="font-semibold text-white">
+              {completeHint ? completeHint : `Rack to ${match.away.name}`}
+            </Text>
           </TouchableOpacity>
         </View>
       </Card>
