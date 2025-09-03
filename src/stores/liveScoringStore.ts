@@ -39,6 +39,8 @@ export type LiveScoringState = {
   serverMatchId?: number;
   serverMatchGameId?: number | null;
 
+  isSyncingGame?: boolean; // NEW: network in-flight when completing a rack
+
   // Actions (write-only; never call from render)
   hydrateMatch: (m: LiveMatch) => void;
   startRack: (rackNumber: number, breakerId: number) => void;
@@ -48,6 +50,7 @@ export type LiveScoringState = {
   completeRack: (winnerId: number, notes?: string) => void;
   resetRack: () => void;
   clear: () => void;
+  setIsSyncingGame: (v: boolean) => void; // NEW
 
   // Server id setters
   setServerMatchId: (id: number) => void;
@@ -71,6 +74,7 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
   match: null,
   shots: [],
   rackMeta: undefined,
+  isSyncingGame: false, // NEW
 
   hydrateMatch: (m) =>
     set({
@@ -187,6 +191,7 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
 
   setServerMatchId: (id) => set({ serverMatchId: id }),
   setServerMatchGameId: (id) => set({ serverMatchGameId: id ?? null }),
+  setIsSyncingGame: (v) => set({ isSyncingGame: v }),
 }));
 
 // -----------------------------------------------------------------------------

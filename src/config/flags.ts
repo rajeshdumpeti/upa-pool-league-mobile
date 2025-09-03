@@ -18,3 +18,6 @@ export const REMOTE_BATCH_EVENTS: boolean = !!(extra?.remoteBatchEvents ?? true)
 //   (__DEV__ && !!(extra?.devSeedLiveScoring ?? false)) || false;
 
 export const DEV_SEED_LIVE_SCORING: boolean = false;
+
+// Require a break mark before allowing "Rack to ..."?
+export const REQUIRE_BREAK_MARK_TO_FINISH: boolean = true; // set false if you want it lenient
