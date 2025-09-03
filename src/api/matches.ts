@@ -17,6 +17,7 @@ import type {
 // 👇 add lightweight types that match your backend stubs
 export type MatchGameCreated = { id: number; match_id: number; game_no: number };
 export type MatchGamePatched = { id: number; status: 'completed' };
+export type MatchSubmitted = { id: number; status: 'submitted' };
 
 /** Create a new rack (match_game) — matches FastAPI: POST /match-games */
 export async function createMatchGame(input: CreateMatchGame): Promise<MatchGameCreated> {
@@ -44,5 +45,11 @@ export async function listMatchGames(matchId: number): Promise<Paged<MatchGame>>
 
 export async function createMatch(body: MatchCreateRequest): Promise<MatchCreateResponse> {
   const { data } = await axiosClient.post<MatchCreateResponse>('/matches', body);
+  return data;
+}
+
+export async function submitMatch(matchId: number): Promise<MatchSubmitted> {
+  // send {} so any body parser is happy
+  const { data } = await axiosClient.post<MatchSubmitted>(`/matches/${matchId}/submit`, {});
   return data;
 }
