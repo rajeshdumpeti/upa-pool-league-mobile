@@ -2,6 +2,8 @@
 import axios from 'axios';
 import { ENV } from '~/config/env';
 import { useAuthStore } from '~/stores/authStore';
+import { getAuthToken } from './authHeader';
+
 // ENV.apiBase already includes /api/v1 in your config
 export const axiosClient = axios.create({
   baseURL: ENV.apiBase,
@@ -15,6 +17,8 @@ export const axiosClient = axios.create({
 axiosClient.interceptors.request.use((config) => {
   // example: config.headers['X-App-Channel'] = ENV.channel;
   // Attach bearer if we have it (no hard dependency at module load)
+  const t = getAuthToken();
+  if (t) config.headers.Authorization = `Bearer ${t}`;
   try {
     const token = useAuthStore.getState().token;
     if (token) config.headers.Authorization = `Bearer ${token}`;

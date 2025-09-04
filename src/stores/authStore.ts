@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { login, me } from '~/api/auth';
+import { setAuthToken } from '~/api/authHeader';
 
 type User = { email: string } | null;
 
@@ -24,6 +25,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
 
   setToken: async (t) => {
+    setAuthToken(t);
     if (t) await SecureStore.setItemAsync(TOKEN_KEY, t);
     else await SecureStore.deleteItemAsync(TOKEN_KEY);
     set({ token: t });
@@ -31,8 +33,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   hydrate: async () => {
     const t = await SecureStore.getItemAsync(TOKEN_KEY);
+    setAuthToken(t);
     if (!t) return;
-    set({ token: t, busy: true });
+    set({ token: t, busy: true, error: null });
     try {
       const info = await me();
       set({ user: { email: info.email }, busy: false });
