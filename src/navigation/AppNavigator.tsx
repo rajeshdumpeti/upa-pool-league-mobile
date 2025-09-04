@@ -14,6 +14,7 @@ import ScoringScreen from '~/features/scoring/ScoringScreen';
 import HomeStack from './stacks/HomeStack';
 import { Ionicons } from '@expo/vector-icons';
 import { tabIcons } from './tab-icons';
+import AccountScreen from '~/features/account/AccountScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -42,7 +43,8 @@ function BottomTabs() {
       <Tab.Screen name="PreMatch" component={PreMatchScreen} />
       <Tab.Screen name="LiveScore" component={LiveScoringScreen} />
       <Tab.Screen name="PostMatch" component={PostMatchReview} />
-      <Tab.Screen name="Score" component={ScoringScreen} />
+      {/* <Tab.Screen name="Score" component={ScoringScreen} /> */}
+      <Tab.Screen name="Profile" component={AccountScreen} options={{ title: 'Profile' }} />
     </Tab.Navigator>
   );
 }
