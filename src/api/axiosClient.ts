@@ -1,7 +1,7 @@
 // src/api/axiosClient.ts
 import axios from 'axios';
 import { ENV } from '~/config/env';
-
+import { useAuthStore } from '~/stores/authStore';
 // ENV.apiBase already includes /api/v1 in your config
 export const axiosClient = axios.create({
   baseURL: ENV.apiBase,
@@ -14,6 +14,11 @@ export const axiosClient = axios.create({
 // Add common headers if needed later (auth, trace-id, etc.)
 axiosClient.interceptors.request.use((config) => {
   // example: config.headers['X-App-Channel'] = ENV.channel;
+  // Attach bearer if we have it (no hard dependency at module load)
+  try {
+    const token = useAuthStore.getState().token;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  } catch {}
 
   return config;
 });
