@@ -1,33 +1,44 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
-import type { Player } from '../models/prematch';
+import { View, Text, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function TeamRosterAccordion({
   title,
   players,
-  initiallyExpanded = false,
 }: {
   title: string;
-  players: Player[];
-  initiallyExpanded?: boolean;
+  players: { id: number; name: string; skill?: number }[];
 }) {
-  const [open, setOpen] = useState(initiallyExpanded);
+  const [open, setOpen] = useState(true);
+
+  const toggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpen((o) => !o);
+  };
+
   return (
-    <View className="mb-3 rounded-2xl border border-zinc-200 bg-white">
+    <View className="mb-3 rounded-2xl bg-white p-3 shadow-sm">
       <Pressable
-        className="flex-row items-center justify-between p-4"
-        onPress={() => setOpen((v) => !v)}>
-        <Text className="text-base font-semibold text-zinc-800">{title}</Text>
-        <Text className="text-zinc-500">{open ? '▴' : '▾'}</Text>
+        onPress={toggle}
+        className="flex-row items-center justify-between"
+        accessibilityRole="button"
+        accessibilityLabel={`${open ? 'Collapse' : 'Expand'} ${title}`}>
+        <Text className="text-base font-semibold text-slate-900">{title}</Text>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color="#475569" />
       </Pressable>
+
       {open && (
-        <View className="border-t border-zinc-100 px-4 py-2">
+        <View className="mt-2" style={{ gap: 8 }}>
           {players.map((p) => (
             <View
               key={p.id}
-              className="h-10 flex-row items-center justify-between border-b border-zinc-100">
-              <Text className="text-zinc-800">{p.name}</Text>
-              {p.skill ? <Text className="text-zinc-500">S{p.skill}</Text> : null}
+              className="flex-row items-center justify-between rounded-xl border border-slate-200 px-3 py-2">
+              <Text className="text-slate-800">{p.name}</Text>
+              {p.skill ? <Text className="text-slate-500">Skill {p.skill}</Text> : null}
             </View>
           ))}
         </View>
