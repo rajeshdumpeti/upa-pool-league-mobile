@@ -125,6 +125,7 @@ export default function LiveScoringScreen() {
   const onAddShot = (playerId: number, symbol: ShotSymbol) => addShot(playerId, symbol);
   const onCompleteRack = (winnerId: number) => completeRack(winnerId, '');
 
+  // TODO: If not a match, next will show some Live scoring but it wont save in DB
   if (!match) {
     return (
       <View className="flex-1 items-center justify-center">
