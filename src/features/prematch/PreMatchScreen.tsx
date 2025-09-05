@@ -10,7 +10,7 @@ import { usePreMatchState } from './hooks/usePreMatchState';
 import FormatPicker from './components/FormatPicker';
 import CoinTossButton from './components/CoinTossButton';
 import CoinTossModal from './components/CoinTossModal';
-import BreakerSelectSheet from './components/BreakerSelectSheet';
+import PlayerPickerModal from './components/PlayerPickerModal';
 import TeamRosterAccordion from './components/TeamRosterAccordion';
 import StartMatchBar from './components/StartMatchBar';
 
@@ -162,7 +162,7 @@ export default function PreMatchScreen() {
       />
 
       {/* Breaker picker sheet (from bottom) */}
-      <BreakerSelectSheet
+      <PlayerPickerModal
         visible={breakerSheetOpen}
         teamLabel={winnerSide ?? 'Home'}
         players={winnerRoster}

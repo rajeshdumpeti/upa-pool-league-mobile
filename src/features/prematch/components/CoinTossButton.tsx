@@ -1,34 +1,28 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { theme } from '~/config/theme';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function CoinTossButton({
-  disabled,
-  label,
-  onPress,
-}: {
-  disabled?: boolean;
-  label: string;
-  onPress: () => void;
-}) {
+export default function CoinTossButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <View className="mb-3">
-      <Text className="mb-2 text-base font-semibold text-zinc-800">Coin Toss</Text>
-      <Pressable
-        disabled={disabled}
-        onPress={onPress}
-        className="h-12 w-full items-center justify-center rounded-2xl"
-        style={{
-          backgroundColor: disabled ? '#cbd5e1' : theme.colors.surface.background,
-          borderWidth: 1,
-          borderColor: theme.colors.surface.border,
-        }}
-        accessibilityRole="button"
-        accessibilityLabel="Run coin toss">
-        <Text style={{ fontWeight: '600', color: disabled ? '#666' : theme.colors.text.primary }}>
-          {label}
-        </Text>
-      </Pressable>
+    <View className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
+      <Text className="mb-3 font-semibold text-slate-900">Coin Toss</Text>
+      <View className="items-center">
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel="Open coin toss"
+          className="h-20 w-20 items-center justify-center rounded-full"
+          style={{
+            backgroundColor: '#e8efff',
+            shadowOpacity: 0.18,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 3 },
+            elevation: 3,
+          }}>
+          <Ionicons name="sync-circle" size={44} color="#2261ff" />
+        </Pressable>
+        <Text className="mt-2 text-sm font-medium text-slate-700">{label}</Text>
+      </View>
     </View>
   );
 }
