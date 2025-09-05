@@ -7,10 +7,9 @@ import { theme } from '~/config/theme';
 import AppHeader from '~/components/AppHeader';
 
 // Screens
-import PreMatchScreen from '~/features/scoring/PreMatchScreen';
+import PreMatchScreen from '~/features/prematch/PreMatchScreen';
 import LiveScoringScreen from '~/features/scoring/LiveScoringScreen';
 import PostMatchReview from '~/features/scoring/PostMatchReview';
-import ScoringScreen from '~/features/scoring/ScoringScreen';
 import HomeStack from './stacks/HomeStack';
 import { Ionicons } from '@expo/vector-icons';
 import { tabIcons } from './tab-icons';
