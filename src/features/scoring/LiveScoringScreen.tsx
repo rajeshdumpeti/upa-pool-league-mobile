@@ -84,11 +84,45 @@ export default function LiveScoringScreen() {
     seededRef.current = true;
   }, [match, hydrateMatch, startRack]);
 
-  const rackNumber = rackMeta?.rackNumber ?? 1;
+  const rackNumber = useLiveScoringStore((s) => s.match?.currentRack ?? 1);
+  const currentRack = match?.racks.find((r) => r.rackNumber === rackNumber);
   const serverMatchId = useLiveScoringStore((s) => s.serverMatchId);
 
   const ms = useLiveScoringStore(useShallow((state) => getMatchScore(state)));
+  // REPLACE these two selectors
+  const lastHomeShot = useLiveScoringStore((s) => {
+    const homeId = s.match?.home.id;
+    if (!homeId) return null;
+    const list = (s.shots ?? []).filter((x) => x.playerId === homeId);
+    return list.length ? (list[list.length - 1].symbol as ShotSymbol) : null;
+  });
 
+  const lastAwayShot = useLiveScoringStore((s) => {
+    const awayId = s.match?.away.id;
+    if (!awayId) return null;
+    const list = (s.shots ?? []).filter((x) => x.playerId === awayId);
+    return list.length ? (list[list.length - 1].symbol as ShotSymbol) : null;
+  });
+
+  // NEW: running shots line (current rack) for Home
+  const homeShotsLine = useLiveScoringStore((s) => {
+    const homeId = s.match?.home.id;
+    if (!homeId) return '';
+    return (s.shots ?? [])
+      .filter((x) => x.playerId === homeId)
+      .map((x) => x.symbol)
+      .join(' | ');
+  });
+
+  // NEW: running shots line (current rack) for Away
+  const awayShotsLine = useLiveScoringStore((s) => {
+    const awayId = s.match?.away.id;
+    if (!awayId) return '';
+    return (s.shots ?? [])
+      .filter((x) => x.playerId === awayId)
+      .map((x) => x.symbol)
+      .join(' | ');
+  });
   const breakerLabel = ms.breakerName ? `Break: ${ms.breakerName}` : 'Break: —';
 
   const homeWins = match?.racks.filter((r) => r.winnerPlayerId === match.home.id).length ?? 0;
@@ -217,23 +251,25 @@ export default function LiveScoringScreen() {
         <Title>Shots</Title>
         <Text className="mt-1 text-zinc-500">Tap to record for a player</Text>
 
-        {/* Home */}
-        <View className="mt-3" pointerEvents="box-none">
+        <View className="mt-3">
           <ShotPad
             className="relative"
             playerName={match.home.name}
             playerId={match.home.id}
             onShot={onAddShot}
+            lastShotSymbol={lastHomeShot} // ← NEW
+            shotsLine={homeShotsLine}
           />
         </View>
 
-        {/* Away */}
-        <View className="mt-4" pointerEvents="box-none">
+        <View className="mt-4">
           <ShotPad
             className="relative"
             playerName={match.away.name}
             playerId={match.away.id}
             onShot={onAddShot}
+            lastShotSymbol={lastAwayShot} // ← NEW
+            shotsLine={awayShotsLine}
           />
         </View>
 

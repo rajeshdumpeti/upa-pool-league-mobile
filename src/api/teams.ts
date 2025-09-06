@@ -1,13 +1,14 @@
 import { axiosClient } from './axiosClient';
 
-export type Team = { id: number; name: string };
-export type Player = { id: number; name: string; skill?: number | null };
+export type TeamOut = { id: number; name: string };
+export type PlayerOut = { id: number; name: string; skill?: number | null };
 
-export async function listMyTeams(): Promise<Team[]> {
-  const { data } = await axiosClient.get<Team[]>('/teams/my');
+export async function listMyTeams(): Promise<TeamOut[]> {
+  const { data } = await axiosClient.get<TeamOut[]>('/teams/my');
   return data;
 }
-export async function listTeamPlayers(teamId: number): Promise<Player[]> {
-  const { data } = await axiosClient.get<Player[]>(`/teams/${teamId}/players`);
+
+export async function listTeamPlayers(teamId: number): Promise<PlayerOut[]> {
+  const { data } = await axiosClient.get<PlayerOut[]>(`/teams/${teamId}/players`);
   return data;
 }

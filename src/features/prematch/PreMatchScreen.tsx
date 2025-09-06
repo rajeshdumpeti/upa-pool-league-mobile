@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 import { usePreMatchState } from './hooks/usePreMatchState';
-
+import type { TeamSide, CoinResult } from '../prematch/models/prematch';
 // UI building blocks (all default-exports you already added)
 import FormatPicker from './components/FormatPicker';
 import CoinTossButton from './components/CoinTossButton';
@@ -22,7 +22,6 @@ import type { LiveMatch } from '../scoring/types';
 
 // If your hook exports explicit types you can import them;
 // keeping simple “any” here avoids compile coupling.
-type TeamSide = 'Home' | 'Away';
 
 export default function PreMatchScreen() {
   const nav = useNavigation<any>();
@@ -52,8 +51,7 @@ export default function PreMatchScreen() {
     stopSubmitting,
   } = usePreMatchState();
 
-  const canStart = !!breaker?.playerId;
-
+  const canStart = !!coinResult && !!breaker?.playerId;
   const onStartMatch = async () => {
     if (!breaker?.playerId) return;
 
@@ -122,7 +120,6 @@ export default function PreMatchScreen() {
           <Ionicons name="help-circle-outline" size={22} color="#64748b" />
         </View>
       </View>
-
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
         {/* 1) Format (fills the row with big segmented buttons) */}
         <FormatPicker value={format} onChange={setFormat} />
@@ -144,35 +141,26 @@ export default function PreMatchScreen() {
 
         <View className="h-6" />
       </ScrollView>
-
-      {/* Coin toss modal (animated) */}
+      {/* Coin toss modal (animated) */}+{' '}
       <CoinTossModal
         visible={coinModalOpen}
         onClose={() => setCoinModalOpen(false)}
-        onResult={(result) => {
-          if (typeof result === 'string') {
-            // If result is a string, convert it to the expected object shape
-            setCoinResult({ face: result as 'Heads' | 'Tails', winner: 'Home' }); // Replace 'Home' with logic if needed
-          } else {
-            setCoinResult(result); // { face: 'Heads'|'Tails', winner: 'Home'|'Away' }
-          }
+        onResult={(result: CoinResult) => {
+          setCoinResult(result);
           setCoinModalOpen(false);
-          setBreakerSheetOpen(true); // immediately pick the breaker from winning team
+          setBreakerSheetOpen(true);
         }}
       />
-
       {/* Breaker picker sheet (from bottom) */}
       <PlayerPickerModal
         visible={breakerSheetOpen}
-        teamLabel={winnerSide ?? 'Home'}
+        teamLabel={winnerSide ?? 'Winner'}
         players={winnerRoster}
         onClose={() => setBreakerSheetOpen(false)}
         onSelect={(playerId: number) => {
           if (winnerSide) {
-            const selectedPlayer = winnerRoster.find((p: any) => p.id === playerId);
-            if (selectedPlayer) {
-              setBreaker({ team: winnerSide, playerId, playerName: selectedPlayer.name });
-            }
+            const selected = winnerRoster.find((p) => p.id === playerId);
+            if (selected) setBreaker({ team: winnerSide, playerId, playerName: selected.name });
           }
           setBreakerSheetOpen(false);
         }}

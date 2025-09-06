@@ -10,6 +10,7 @@ type Props = {
 export type TeamSide = 'Home' | 'Away';
 export type CoinFace = 'Heads' | 'Tails';
 export type Result = { face: CoinFace; winner: TeamSide };
+type CoinResult = { face: 'Heads' | 'Tails'; winner: 'Home' | 'Away' };
 
 export default function CoinTossModal({ visible, onClose, onResult }: Props) {
   const spin = useRef(new Animated.Value(0)).current;
