@@ -12,24 +12,18 @@ export default function TeamSelectRow({
   onPress: () => void;
 }) {
   return (
-    <View className="mb-3">
-      <Text className="mb-1 text-[13px] font-semibold text-slate-700">{label}</Text>
-      <Pressable
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityLabel={`${label}. ${value ? `Selected ${value}` : 'Tap to choose team'}`}
-        className="h-12 flex-row items-center justify-between rounded-2xl bg-slate-100 px-4">
-        <View className="flex-row items-center">
-          <Ionicons name="people-outline" size={18} color="#0f4c81" />
-          <Text className="ml-2 text-[16px] text-slate-900">{value ?? 'Select team'}</Text>
-        </View>
-        <Ionicons
-          name="chevron-up-outline"
-          size={18}
-          color="#64748b"
-          style={{ transform: [{ rotate: '90deg' }] }}
-        />
-      </Pressable>
-    </View>
+    <Pressable
+      onPress={onPress}
+      className="mb-3 flex-row items-center justify-between rounded-2xl border border-slate-200 bg-white p-4"
+      accessibilityRole="button"
+      accessibilityLabel={`Select ${label}`}>
+      <View>
+        <Text className="text-xs text-slate-500">{label}</Text>
+        <Text className="mt-0.5 text-base font-semibold text-slate-800">
+          {value || 'select team'}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color="#64748b" />
+    </Pressable>
   );
 }

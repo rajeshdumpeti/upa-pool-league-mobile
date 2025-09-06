@@ -5,23 +5,16 @@ import { Ionicons } from '@expo/vector-icons';
 export default function CoinTossButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
     <View className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
-      <Text className="mb-3 font-semibold text-slate-900">Coin Toss</Text>
-      <View className="items-center">
+      <Text className="mb-3 font-semibold text-slate-900">{label}</Text>
+      <View className="flex-row justify-center gap-6">
         <Pressable
-          onPress={onPress}
           accessibilityRole="button"
           accessibilityLabel="Open coin toss"
-          className="h-20 w-20 items-center justify-center rounded-full"
-          style={{
-            backgroundColor: '#e8efff',
-            shadowOpacity: 0.18,
-            shadowRadius: 6,
-            shadowOffset: { width: 0, height: 3 },
-            elevation: 3,
-          }}>
-          <Ionicons name="sync-circle" size={44} color="#2261ff" />
+          onPress={onPress}
+          className="h-16 w-16 items-center justify-center rounded-full"
+          style={{ backgroundColor: '#0f4c81' }}>
+          <Ionicons name="sync-outline" size={26} color="#fff" />
         </Pressable>
-        <Text className="mt-2 text-sm font-medium text-slate-700">{label}</Text>
       </View>
     </View>
   );

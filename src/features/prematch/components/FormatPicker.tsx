@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import type { GameFormat } from '../models/prematch';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
   value: '8-ball' | '9-ball' | '10-ball';
@@ -16,9 +17,13 @@ export default function FormatPicker({
   value: GameFormat;
   onChange: (f: GameFormat) => void;
 }) {
+  const formats: GameFormat[] = ['8-ball', '9-ball', '10-ball'];
   return (
     <View className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
-      <Text className="mb-3 font-semibold text-slate-900">Game Format</Text>
+      <View className="mb-3 flex-row items-center">
+        <Ionicons name="grid-outline" size={18} color="#0f4c81" />
+        <Text className="ml-2 font-semibold text-slate-900">Game Format</Text>
+      </View>{' '}
       <View className="flex-row gap-3">
         {FORMATS.map((f) => {
           const active = f === value;
@@ -32,21 +37,22 @@ export default function FormatPicker({
                 active ? 'border-blue-700 bg-blue-600' : 'border-slate-200 bg-slate-50'
               }`}
               style={{
-                // force a “square card” look; keeps a single row on small phones
-                aspectRatio: 0.9,
-                shadowOpacity: active ? 0.25 : 0.08,
-                shadowRadius: active ? 7 : 5,
-                shadowOffset: { width: 0, height: 3 },
-                elevation: active ? 4 : 1,
+                height: 56,
+                borderColor: active ? '#0f4c81' : '#cbd5e1',
+                backgroundColor: active ? '#0f4c81' : '#fff',
               }}>
               <Text
-                className={`text-base font-semibold ${active ? 'text-white' : 'text-slate-800'}`}>
-                {f}
+                className="text-sm font-semibold"
+                style={{ color: active ? '#fff' : '#0f172a' }}>
+                {f.toUpperCase()}
               </Text>
             </Pressable>
           );
         })}
       </View>
+      <Text className="mt-2 text-xs text-slate-500">
+        You can change the format until scoring starts.
+      </Text>
     </View>
   );
 }
