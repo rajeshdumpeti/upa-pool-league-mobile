@@ -15,6 +15,8 @@ export interface RackEvent {
   rackNumber: number; // 1-based
   winnerPlayerId: number; // who won the rack
   breakerPlayerId?: number; // who broke
+  homePlayerId: number; // optional: home player in this rack
+  awayPlayerId: number; // optional: away player in this rack
   defensiveShots?: number; // optional: count of defensive shots in rack
   innings?: number; // optional: innings taken
   timeouts?: number; // optional: timeouts used in rack (team/player)

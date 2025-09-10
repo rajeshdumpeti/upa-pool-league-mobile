@@ -43,7 +43,7 @@ function BottomTabs() {
       <Tab.Screen name="LiveScore" component={LiveScoringScreen} />
       <Tab.Screen name="PostMatch" component={PostMatchReview} />
       {/* <Tab.Screen name="Score" component={ScoringScreen} /> */}
-      <Tab.Screen name="Profile" component={AccountScreen} options={{ title: 'Profile' }} />
+      {/* <Tab.Screen name="Profile" component={AccountScreen} options={{ title: 'Profile' }} /> */}
     </Tab.Navigator>
   );
 }

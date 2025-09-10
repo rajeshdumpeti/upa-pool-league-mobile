@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, View, Text, Pressable, Animated, Easing } from 'react-native';
-import { tryHaptic } from '../utils/heptics';
+import { tryHaptic } from '../utils/haptics';
 
 type Props = {
   visible: boolean;

@@ -27,6 +27,8 @@ type RackMeta = {
   rackNumber: number;
   breakerPlayerId?: number;
   breakMark?: BreakMark;
+  homePlayerId?: number; // optional: home player in this rack
+  awayPlayerId?: number; // optional: away player in this rack
 };
 
 // Store shape
@@ -92,7 +94,12 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
     const before = m; // snapshot for listeners
 
     set({
-      rackMeta: { rackNumber, breakerPlayerId: breakerId },
+      rackMeta: {
+        rackNumber,
+        breakerPlayerId: breakerId,
+        homePlayerId: m.home.id,
+        awayPlayerId: m.away.id,
+      },
       match: { ...m, currentRack: rackNumber },
       shots: [],
     });
@@ -111,6 +118,20 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
     const m = get().match;
     if (!meta) {
       console.warn('addShot: start a rack first');
+      return;
+    }
+    if (
+      typeof meta.homePlayerId === 'number' &&
+      typeof meta.awayPlayerId === 'number' &&
+      playerId !== meta.homePlayerId &&
+      playerId !== meta.awayPlayerId
+    ) {
+      if (__DEV__) {
+        console.warn('[addShot] rejected: player not allowed in this rack', {
+          playerId,
+          allowed: { homePlayerId: meta.homePlayerId, awayPlayerId: meta.awayPlayerId },
+        });
+      }
       return;
     }
 
@@ -151,6 +172,8 @@ export const useLiveScoringStore = create<LiveScoringState>((set, get) => ({
       rackNumber: meta.rackNumber,
       winnerPlayerId: winnerId,
       breakerPlayerId: meta.breakerPlayerId,
+      homePlayerId: meta.homePlayerId!,
+      awayPlayerId: meta.awayPlayerId!,
       defensiveShots: summary.defensiveShots,
       innings: summary.innings,
       timeouts: summary.timeouts,

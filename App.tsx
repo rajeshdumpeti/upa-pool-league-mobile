@@ -29,13 +29,13 @@ export default function App() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StorageGate>
-            {/* <NavigationContainer theme={navTheme}>
+            <NavigationContainer theme={navTheme}>
               <AppNavigator />
               <StatusBar style="light" />
-            </NavigationContainer> */}
-            <AuthGate>
+            </NavigationContainer>
+            {/* <AuthGate>
               <NavigationContainer theme={navTheme}>
-                {token && user ? (
+                {!token && !user ? (
                   <>
                     <AppNavigator /> <StatusBar style="light" />
                   </>
@@ -45,7 +45,7 @@ export default function App() {
                   </>
                 )}
               </NavigationContainer>
-            </AuthGate>
+            </AuthGate> */}
           </StorageGate>
         </QueryClientProvider>
       </SafeAreaProvider>

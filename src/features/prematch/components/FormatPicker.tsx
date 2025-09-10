@@ -17,7 +17,6 @@ export default function FormatPicker({
   value: GameFormat;
   onChange: (f: GameFormat) => void;
 }) {
-  const formats: GameFormat[] = ['8-ball', '9-ball', '10-ball'];
   return (
     <View className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
       <View className="mb-3 flex-row items-center">

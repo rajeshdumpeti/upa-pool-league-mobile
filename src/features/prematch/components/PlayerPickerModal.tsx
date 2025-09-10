@@ -1,7 +1,7 @@
 import type { TeamSide } from '../models/prematch';
 import React, { useEffect, useRef } from 'react';
 import { Modal, View, Text, FlatList, Pressable, Animated } from 'react-native';
-import { tryHaptic } from '../utils/heptics';
+import { tryHaptic } from '../utils/haptics';
 
 type Player = { id: number; name: string; skill?: number | null };
 
