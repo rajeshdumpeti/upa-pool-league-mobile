@@ -1,3 +1,4 @@
+// src/features/prematch/components/TeamRosterAccordion.tsx
 import React, { useState } from 'react';
 import { View, Text, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,12 +7,14 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+type PlayerItem = { id: number; name: string; skill?: number | null };
+
 export default function TeamRosterAccordion({
   title,
   players,
 }: {
   title: string;
-  players: { id: number; name: string; skill?: number }[];
+  players: PlayerItem[];
 }) {
   const [open, setOpen] = useState(true);
 
@@ -38,7 +41,7 @@ export default function TeamRosterAccordion({
               key={p.id}
               className="flex-row items-center justify-between rounded-xl border border-slate-200 px-3 py-2">
               <Text className="text-slate-800">{p.name}</Text>
-              {p.skill ? <Text className="text-slate-500">Skill {p.skill}</Text> : null}
+              {p.skill != null ? <Text className="text-slate-500">Skill {p.skill}</Text> : null}
             </View>
           ))}
         </View>

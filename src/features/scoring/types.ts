@@ -5,9 +5,9 @@ import { Shot } from '~/stores/liveScoringStore';
 export type GameFormat = '8-ball' | '9-ball' | '10-ball';
 
 export interface PlayerRef {
-  id: number; // backend id
+  id: number;
   name: string;
-  skill: number; // UPA skill rating (int)
+  skill?: number | null; // <-- allow undefined from API
 }
 
 export interface RackEvent {

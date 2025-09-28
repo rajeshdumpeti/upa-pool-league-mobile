@@ -1,55 +1,45 @@
 import React from 'react';
-import { Modal, View, Text, FlatList, Pressable } from 'react-native';
-import { TeamOut } from '~/api/teams';
+import { Modal, View, Text, Pressable, FlatList, ActivityIndicator } from 'react-native';
+import { useMyTeams } from '../hooks/useTeams';
+import type { TeamOut } from '~/api/teams';
 
 export default function TeamPickerModal({
   visible,
-  title,
-  teams,
   onClose,
-  onSelect,
+  onPick,
+  title = 'Select Team',
 }: {
   visible: boolean;
-  title: string;
-  teams: TeamOut[];
   onClose: () => void;
-  onSelect: (team: TeamOut) => void;
+  onPick: (team: TeamOut) => void;
+  title?: string;
 }) {
+  const { data, isLoading, isError } = useMyTeams();
+
   return (
-    <Modal animationType="slide" transparent={false} visible={visible} onRequestClose={onClose}>
-      <View className="flex-1 bg-white">
-        <View className="border-b border-slate-200 px-5 pb-3 pt-4">
-          <Text className="text-center text-lg font-semibold text-slate-900">{title}</Text>
-        </View>
-        <FlatList
-          className="px-5 pt-3"
-          data={teams}
-          keyExtractor={(t) => String(t.id)}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => onSelect(item)}
-              className="mb-3 flex-row items-center rounded-2xl border border-slate-200 bg-white p-4"
-              style={{
-                shadowOpacity: 0.06,
-                shadowRadius: 4,
-                shadowOffset: { width: 0, height: 2 },
-              }}>
-              <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                <Text className="font-semibold text-slate-700">
-                  {item.name.slice(0, 2).toUpperCase()}
-                </Text>
-              </View>
-              <Text className="flex-1 text-base font-semibold text-slate-800">{item.name}</Text>
-              <Text className="text-blue-600">Choose</Text>
-            </Pressable>
-          )}
-        />
-        <View className="px-5 pb-6 pt-2">
-          <Pressable
-            onPress={onClose}
-            className="h-12 items-center justify-center rounded-2xl bg-slate-100">
-            <Text className="font-medium text-slate-700">Cancel</Text>
-          </Pressable>
+    <Modal visible={visible} animationType="slide" transparent>
+      <View className="flex-1 bg-black/40">
+        <Pressable className="flex-1" onPress={onClose} />
+        <View className="max-h-[60%] rounded-t-2xl bg-white p-4">
+          <Text className="mb-3 text-lg font-semibold">{title}</Text>
+
+          {isLoading && <ActivityIndicator />}
+          {isError && <Text className="text-red-600">Failed to load teams</Text>}
+
+          <FlatList
+            data={data ?? []}
+            keyExtractor={(t) => String(t.id)}
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => {
+                  onPick(item);
+                  onClose();
+                }}
+                className="mb-2 rounded-xl border border-slate-200 p-3">
+                <Text className="text-base font-medium">{item.name}</Text>
+              </Pressable>
+            )}
+          />
         </View>
       </View>
     </Modal>

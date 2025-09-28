@@ -30,7 +30,7 @@ function resolveDevApiBase(): string {
   if (EXPLICIT_API) return EXPLICIT_API;
 
   // Simulators
-  if (Platform.OS === 'ios') return 'http://localhost:8000/api/v1';
+  if (Platform.OS === 'ios') return 'http://127.0.0.1:8080/api/v1';
   if (Platform.OS === 'android') return 'http://10.0.2.2:8000/api/v1';
 
   // Physical device: require a LAN IP in env/extra
@@ -43,7 +43,7 @@ function resolveDevApiBase(): string {
   }
 
   // Last resort fallback
-  return extra.dev?.API_BASE || 'http://localhost:8000/api/v1';
+  return extra.dev?.API_BASE || 'http://127.0.0.1:8080/api/v1';
 }
 
 function resolveApiBase(): string {
