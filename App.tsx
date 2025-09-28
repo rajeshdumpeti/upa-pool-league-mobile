@@ -30,22 +30,18 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <StorageGate>
             <NavigationContainer theme={navTheme}>
-              <AppNavigator />
-              <StatusBar style="light" />
+              {token ? (
+                <>
+                  <AppNavigator />
+                  <StatusBar style="light" />
+                </>
+              ) : (
+                <>
+                  <LoginScreen />
+                  <StatusBar style="dark" />
+                </>
+              )}
             </NavigationContainer>
-            {/* <AuthGate>
-              <NavigationContainer theme={navTheme}>
-                {!token && !user ? (
-                  <>
-                    <AppNavigator /> <StatusBar style="light" />
-                  </>
-                ) : (
-                  <>
-                    <LoginScreen /> <StatusBar style="dark" />
-                  </>
-                )}
-              </NavigationContainer>
-            </AuthGate> */}
           </StorageGate>
         </QueryClientProvider>
       </SafeAreaProvider>

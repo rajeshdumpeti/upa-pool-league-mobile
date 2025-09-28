@@ -41,7 +41,7 @@ export default function PlayerPickerModal({
         <Animated.View className="rounded-t-3xl bg-white" style={{ transform: [{ translateY }] }}>
           <View className="border-b border-slate-200 px-5 pb-3 pt-4">
             <Text className="text-center text-lg font-semibold text-slate-900">
-              Select Breaker – {teamLabel} Team
+              Select Player – {teamLabel} Team
             </Text>
           </View>
 

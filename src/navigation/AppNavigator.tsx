@@ -13,7 +13,7 @@ import PostMatchReview from '~/features/scoring/PostMatchReview';
 import HomeStack from './stacks/HomeStack';
 import { Ionicons } from '@expo/vector-icons';
 import { tabIcons } from './tab-icons';
-import AccountScreen from '~/features/account/AccountScreen';
+// import AccountScreen from '~/features/account/AccountScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();

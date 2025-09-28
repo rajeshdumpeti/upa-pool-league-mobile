@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { listMyTeams, listTeamPlayers, TeamOut, PlayerOut } from '~/api/teams';
+import { listMyTeams, listTeamPlayers } from '~/api/teams';
 
 export function useMyTeams() {
   return useQuery({

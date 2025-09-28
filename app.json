@@ -10,7 +10,7 @@
     "extra": {
       "devSeedLiveScoring": true,
       "dev": {
-        "API_BASE": "http://localhost:8000/api/v1",
+        "API_BASE": "http://127.0.0.1:8080/api/v1",
         "CMS_BASE": "https://dev-cms.example.com",
         "LOCAL_IP": "192.168.1.192"
       },
