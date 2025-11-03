@@ -39,7 +39,7 @@
     "expo-status-bar": "~2.2.3",
     "expo-updates": "~0.28.17",
     "nativewind": "latest",
-    "react": "19.0.0",
+    "react": "19.1.1",
     "react-native": "0.79.5",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-mmkv": "~2.12.2",
@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@types/react": "~19.0.10",
+    "@types/react": "~19.1.12",
     "dotenv": "^17.2.1",
     "eas-cli": "^16.17.4",
     "eslint": "^9.25.1",
